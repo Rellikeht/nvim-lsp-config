@@ -36,6 +36,18 @@ end
 
 -- }}}
 
+-- command {{{
+
+vim.api.nvim_create_user_command(
+  "LspConfig", function(opts)
+    for _, name in pairs(opts.fargs) do
+      default_setup_server(name)
+    end
+  end, {nargs = "+"}
+)
+
+--  }}}
+
 local servers = { -- {{{
   -- must have
   -- :(
@@ -83,18 +95,32 @@ local servers = { -- {{{
   [{"star", "bzl", "BUILD.bazel"}] = "starlark_rust",
   [{"gleam"}] = "gleam",
   [{"fortran"}] = "fortls",
+  [{"cs"}] = "csharp_ls",
+  [{"clojure"}] = "clojure_lsp",
+  [{"cmake"}] = {"neocmake"},
+  [{"glsl", "vert", "tesc", "tese", "frag", "geom", "comp"}] = {
+    "glsl_analyzer",
+  },
 
   -- test and select
-  [{"solidity"}] = "solang",
-  [{"solidity"}] = "solc",
-  [{"solidity"}] = "solidity_ls",
+  [{"solidity"}] = {"solang", "solc", "solidity_ls"},
 
   [{"scheme.guile"}] = "guile_ls",
   [{"scheme"}] = "scheme_langserver",
 }
 
-for ftypes, name in pairs(servers) do
-  lazy_setup(ftypes, function() default_setup_server(name) end)
+for ftypes, names in pairs(servers) do
+  if type(names) == "table" then
+    for _, name in pairs(names) do
+      lazy_setup(
+        ftypes, function() default_setup_server(name) end
+      )
+    end
+  else
+    lazy_setup(
+      ftypes, function() default_setup_server(names) end
+    )
+  end
 end
 -- universal
 default_setup_server("ast_grep")
