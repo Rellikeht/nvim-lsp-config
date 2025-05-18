@@ -50,8 +50,12 @@ vim.api.nvim_create_user_command(
 
 local servers = { -- {{{
   -- must have
-  -- :(
-  -- [{"python"}] = "pylyzer",
+  [{"python"}] = {
+    -- :(
+    -- "pylyzer",
+    -- TODO check
+    "ruff",
+  },
   [{
     "ocaml",
     "ocamlinterface",
@@ -77,7 +81,7 @@ local servers = { -- {{{
     "typescript",
     "typescriptreact",
     "typescript.jsx",
-  }] = "ts_ls",
+  }] = {"ts_ls", "denols"},
 
   -- just in case
   [{"erlang"}] = "erlangls",
@@ -97,13 +101,21 @@ local servers = { -- {{{
   [{"fortran"}] = "fortls",
   [{"cs"}] = "csharp_ls",
   [{"clojure"}] = "clojure_lsp",
-  [{"cmake"}] = {"neocmake"},
+  [{"cmake"}] = "neocmake",
   [{"glsl", "vert", "tesc", "tese", "frag", "geom", "comp"}] = {
     "glsl_analyzer",
   },
+  [{"gd", "gdscript", "gdscript3"}] = "gdscript",
+  [{"gdshader", "gdshaderinc"}] = "gdshader_lsp",
 
-  -- test and select
+  -- test and select (or leave multiple)
   [{"solidity"}] = {"solang", "solc", "solidity_ls"},
+  [{"vhdl", "vhd"}] = {"vhdl_ls", "ghdl_ls"},
+  [{"verilog", "systemverilog"}] = {
+    "svls",
+    "veridain",
+    "verible",
+  },
 
   [{"scheme.guile"}] = "guile_ls",
   [{"scheme"}] = "scheme_langserver",
@@ -234,7 +246,11 @@ lazy_setup(
               },
               pycodestyle = {maxLineLength = 78},
               rope_autoimport = {enabled = true, eager = true},
-              ruff = {enabled = true},
+              ruff = {
+                enabled = true,
+                formatEnabled = true,
+                unsafeFixes = true,
+              },
             },
           },
 
@@ -354,20 +370,19 @@ lazy_setup(
 
 lazy_setup(
   {"julia"}, function()
-    lspconfig.julials.setup(
-      {
-        -- boilerplate {{{
-        preselectSupport = false,
-        preselect = false,
-        single_file_support = true,
-        on_attach = lsp_attach,
-        capabilities = Capabilities,
-        settings = {telemetry = {enable = false}}, -- }}}
-        cmd = { -- {{{
-          "julials",
-        }, -- }}}
-      }
-    )
+    local settings = {
+      -- boilerplate {{{
+      preselectSupport = false,
+      preselect = false,
+      single_file_support = true,
+      on_attach = lsp_attach,
+      capabilities = Capabilities,
+      settings = {telemetry = {enable = false}}, -- }}}
+    }
+    if vim.fn.executable("julials") then
+      settings.cmd = {"julials"}
+    end
+    lspconfig.julials.setup(settings)
   end
 )
 
