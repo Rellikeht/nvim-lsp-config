@@ -3,6 +3,17 @@ if vim.fn.has("nvim-0.10") == 0 then
 end
 
 -- helpers {{{
+
+local function reedit()
+  if vim.b.readonly then
+    print("view")
+    vim.cmd.view()
+  else
+    print("edit")
+    vim.cmd.edit()
+  end
+end
+
 ---@diagnostic disable: unused-local
 local lspconfig_util = require("lspconfig.util")
 local lazy_utils = require("lazy_utils")
@@ -52,7 +63,7 @@ local function lazy_setup(filetypes, name, loader, args)
       -- it's needed and will start when it isn't
       vim.cmd.LspStart(name)
       if vim.fn.filereadable(vim.fn.expand("%")) == 1 then
-        vim.cmd.edit()
+        reedit()
       else
         -- price for lazy starging after writing is high
         local gid = vim.api.nvim_create_augroup(
@@ -180,207 +191,207 @@ end
 
 lazy_setup(
   {"lua"}, "lua_ls", {
-      -- boilerplate {{{
-      preselectSupport = false,
-      preselect = false,
-      single_file_support = true,
-      on_attach = lsp_attach,
-      capabilities = Capabilities, -- }}}
-      on_init = function(client) -- {{{
-        ---@diagnostic disable: undefined-field
-        if client.workspace_folders then
-          local path = client.workspace_folders[1].name
-          if vim.loop.fs_stat(path .. "/.luarc.json") or
-            vim.loop.fs_stat(path .. "/.luarc.jsonc") then
-            return
-          end
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities, -- }}}
+    on_init = function(client) -- {{{
+      ---@diagnostic disable: undefined-field
+      if client.workspace_folders then
+        local path = client.workspace_folders[1].name
+        if vim.loop.fs_stat(path .. "/.luarc.json") or
+          vim.loop.fs_stat(path .. "/.luarc.jsonc") then
+          return
         end
+      end
 
-        client.config.settings.Lua = vim.tbl_deep_extend(
-          "force", client.config.settings.Lua, {
-            runtime = {
-              -- Tell the language server which version of Lua you're using
-              -- (most likely LuaJIT in the case of Neovim)
-              version = "LuaJIT",
-            }, -- Make the server aware of Neovim runtime files
-            workspace = {
-              checkThirdParty = false,
-              library = {
-                vim.env.VIMRUNTIME,
-                -- Depending on the usage, you might want to add additional paths here.
-                -- "${3rd}/luv/library"
-                -- "${3rd}/busted/library",
-              },
-
-              -- or pull in all of 'runtimepath'. NOTE: this is a lot slower
-              -- library = vim.api.nvim_get_runtime_file("", true)
-            },
-          }
-        )
-      end, -- }}}
-      settings = { -- {{{
-        Lua = {
+      client.config.settings.Lua = vim.tbl_deep_extend(
+        "force", client.config.settings.Lua, {
           runtime = {
-            version = "LuaJIT", -- Setup your lua path
-            path = {
-              "?.lua",
-              "?/init.lua",
-              unpack(vim.split(package.path, ";")),
-            },
-          },
-          hint = {enable = true},
-          diagnostics = {
-            -- Get the language server to recognize the `vim` global
-            globals = {"vim", "require"},
-          },
+            -- Tell the language server which version of Lua you're using
+            -- (most likely LuaJIT in the case of Neovim)
+            version = "LuaJIT",
+          }, -- Make the server aware of Neovim runtime files
           workspace = {
-            -- Make the server aware of Neovim runtime files
-            -- library = vim.api.nvim_get_runtime_file("", true),
-          },
-          format = {
-            defaultConfig = {
-              indent_style = "space",
-              indent_size = 2,
+            checkThirdParty = false,
+            library = {
+              vim.env.VIMRUNTIME,
+              -- Depending on the usage, you might want to add additional paths here.
+              -- "${3rd}/luv/library"
+              -- "${3rd}/busted/library",
             },
+
+            -- or pull in all of 'runtimepath'. NOTE: this is a lot slower
+            -- library = vim.api.nvim_get_runtime_file("", true)
           },
-          telemetry = {enable = false},
+        }
+      )
+    end, -- }}}
+    settings = { -- {{{
+      Lua = {
+        runtime = {
+          version = "LuaJIT", -- Setup your lua path
+          path = {
+            "?.lua",
+            "?/init.lua",
+            unpack(vim.split(package.path, ";")),
+          },
         },
-      }, -- }}}
-    }
+        hint = {enable = true},
+        diagnostics = {
+          -- Get the language server to recognize the `vim` global
+          globals = {"vim", "require"},
+        },
+        workspace = {
+          -- Make the server aware of Neovim runtime files
+          -- library = vim.api.nvim_get_runtime_file("", true),
+        },
+        format = {
+          defaultConfig = {
+            indent_style = "space",
+            indent_size = 2,
+          },
+        },
+        telemetry = {enable = false},
+      },
+    }, -- }}}
+  }
 )
 
 lazy_setup(
   {"python"}, "pylsp", {
-      -- boilerplate {{{
-      preselectSupport = false,
-      preselect = false,
-      single_file_support = true,
-      on_attach = lsp_attach,
-      capabilities = Capabilities,
-      -- }}}
-      settings = { -- {{{
-        pylsp = {
-          plugins = {
-            jedi_completion = {
-              --
-              fuzzy = true,
-              eager = true,
-              include_funciton_objects = true,
-            },
-            pylsp_mypy = {
-              enabled = true,
-              live_mode = false,
-              dmypy = true,
-            },
-            pylint = {enabled = false, executable = "pylint"},
-            pyls_isort = {
-              -- import sorting
-              enabled = true,
-            },
-            pycodestyle = {maxLineLength = 78},
-            rope_autoimport = {enabled = true, eager = true},
-            ruff = {
-              enabled = true,
-              formatEnabled = true,
-              unsafeFixes = true,
-            },
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities,
+    -- }}}
+    settings = { -- {{{
+      pylsp = {
+        plugins = {
+          jedi_completion = {
+            --
+            fuzzy = true,
+            eager = true,
+            include_funciton_objects = true,
+          },
+          pylsp_mypy = {
+            enabled = true,
+            live_mode = false,
+            dmypy = true,
+          },
+          pylint = {enabled = false, executable = "pylint"},
+          pyls_isort = {
+            -- import sorting
+            enabled = true,
+          },
+          pycodestyle = {maxLineLength = 78},
+          rope_autoimport = {enabled = true, eager = true},
+          ruff = {
+            enabled = true,
+            formatEnabled = true,
+            unsafeFixes = true,
           },
         },
+      },
 
-        flags = {debounce_text_changes = 100},
-      }, -- }}}
-    }
+      flags = {debounce_text_changes = 100},
+    }, -- }}}
+  }
 )
 
 lazy_setup(
   {"nix"}, "nil_ls", {
-      -- boilerplate {{{
-      preselectSupport = false,
-      preselect = false,
-      single_file_support = true,
-      on_attach = lsp_attach,
-      capabilities = Capabilities, -- }}}
-      settings = { -- {{{
-        ["nil"] = {
-          formatting = {command = {"alejandra"}},
-          diagnostics = {
-            ignored = {
-              -- "unused_rec",
-              -- "empty_let_in",
-              -- "unused_with",
-            },
-          },
-          nix = {
-            maxMemoryMB = 4096,
-            flake = {
-              --
-              autoArchive = false,
-              autoEvalInputs = false,
-            },
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities, -- }}}
+    settings = { -- {{{
+      ["nil"] = {
+        formatting = {command = {"alejandra"}},
+        diagnostics = {
+          ignored = {
+            -- "unused_rec",
+            -- "empty_let_in",
+            -- "unused_with",
           },
         },
-      }, -- }}}
-    }
+        nix = {
+          maxMemoryMB = 4096,
+          flake = {
+            --
+            autoArchive = false,
+            autoEvalInputs = false,
+          },
+        },
+      },
+    }, -- }}}
+  }
 )
 
 lazy_setup(
   {"nim"}, "nim_langserver", {
-      -- boilerplate {{{
-      preselectSupport = false,
-      preselect = false,
-      single_file_support = true,
-      on_attach = lsp_attach,
-      capabilities = Capabilities, -- }}}
-      settings = { -- {{{
-        nim = {
-          notificationVerbosity = "error",
-          nimsuggestIdleTimeout = 9999999999,
-          autoRestart = true,
-          logNimsuggest = false,
-        },
-      }, -- }}}
-    }
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities, -- }}}
+    settings = { -- {{{
+      nim = {
+        notificationVerbosity = "error",
+        nimsuggestIdleTimeout = 9999999999,
+        autoRestart = true,
+        logNimsuggest = false,
+      },
+    }, -- }}}
+  }
 )
 
 -- fucking almost useless shit
 -- that crashes on every fucking input
 lazy_setup(
   {"typst"}, "tinymist", {
-      -- boilerplate {{{
-      preselectSupport = false,
-      preselect = false,
-      single_file_support = true,
-      on_attach = lsp_attach,
-      capabilities = Capabilities,
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities,
+    offset_encoding = "utf-8",
+    -- }}}
+    settings = { -- {{{
       offset_encoding = "utf-8",
-      -- }}}
-      settings = { -- {{{
-        offset_encoding = "utf-8",
-        semanticTokens = "disable",
-        exportPdf = "never",
-      }, -- }}}
-    }
+      semanticTokens = "disable",
+      exportPdf = "never",
+    }, -- }}}
+  }
 )
 
 lazy_setup(
   {"go", "gomod", "gowork", "gotmpl"}, "gopls", {
-      -- boilerplate {{{
-      preselectSupport = false,
-      preselect = false,
-      single_file_support = true,
-      on_attach = lsp_attach,
-      capabilities = Capabilities, -- }}}
-      settings = { -- {{{
-        gopls = {
-          completionBudget = "0",
-          usePlaceholders = true,
-          experimentalPostfixCompletions = true,
-          analyses = {unusedparams = true, shadow = true},
-          staticcheck = true,
-          vulncheck = "Imports",
-        },
-      }, -- }}}
-    }
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities, -- }}}
+    settings = { -- {{{
+      gopls = {
+        completionBudget = "0",
+        usePlaceholders = true,
+        experimentalPostfixCompletions = true,
+        analyses = {unusedparams = true, shadow = true},
+        staticcheck = true,
+        vulncheck = "Imports",
+      },
+    }, -- }}}
+  }
 )
 
 lazy_setup(
@@ -407,194 +418,194 @@ lazy_setup(
 -- No idea if all of that is really needed
 lazy_setup(
   {"rust"}, "rust_analyzer", {
-      -- boilerplate {{{
-      on_attach = lsp_attach,
-      preselectSupport = false,
-      preselect = false,
-      single_file_support = true,
-      capabilities = Capabilities, -- }}}
-      settings = { -- {{{
-        ["rust-analyzer"] = {
-          standalone = true,
-          workspaceFolders = false,
-          workspace = {workspaceFolders = false},
+    -- boilerplate {{{
+    on_attach = lsp_attach,
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    capabilities = Capabilities, -- }}}
+    settings = { -- {{{
+      ["rust-analyzer"] = {
+        standalone = true,
+        workspaceFolders = false,
+        workspace = {workspaceFolders = false},
 
-          completion = {contextSupport = true},
-          imports = {
-            granularity = {group = "module"},
-            prefix = "self",
-          },
-          cargo = {
-            buildScripts = {enable = true},
-            allFeatures = true,
-          },
-          procMacro = {enable = true},
+        completion = {contextSupport = true},
+        imports = {
+          granularity = {group = "module"},
+          prefix = "self",
         },
-      }, -- }}}
-    }
+        cargo = {
+          buildScripts = {enable = true},
+          allFeatures = true,
+        },
+        procMacro = {enable = true},
+      },
+    }, -- }}}
+  }
 )
 
 local c_files = {"c", "cpp", "objc", "objcpp", "cuda"}
 lazy_setup(
   c_files, "clangd", {
-      -- boilerplate {{{
-      preselectSupport = false,
-      preselect = false,
-      single_file_support = true,
-      on_attach = lsp_attach,
-      capabilities = Capabilities, -- }}}
-      cmd = { -- {{{
-        "clangd",
-        "--clang-tidy",
-        "--enable-config",
-        "--header-insertion=never",
-        "--completion-style=detailed",
-        "--pch-storage=memory",
-        "--background-index",
-        "--background-index-priority=low",
-      }, -- }}}
-      filetypes = { --  {{{
-        "c",
-        "cpp",
-        "objc",
-        "objcpp",
-        "cuda",
-      }, --  }}}
-      settings = { -- {{{
-      }, -- }}}
-    }
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities, -- }}}
+    cmd = { -- {{{
+      "clangd",
+      "--clang-tidy",
+      "--enable-config",
+      "--header-insertion=never",
+      "--completion-style=detailed",
+      "--pch-storage=memory",
+      "--background-index",
+      "--background-index-priority=low",
+    }, -- }}}
+    filetypes = { --  {{{
+      "c",
+      "cpp",
+      "objc",
+      "objcpp",
+      "cuda",
+    }, --  }}}
+    settings = { -- {{{
+    }, -- }}}
+  }
 )
 lazy_setup(
 
   c_files, "clangd_extensions", {
-      inlay_hints = { -- {{{
-        -- Options other than `highlight' and `priority' only work
-        -- if `inline' is disabled
-        inline = vim.fn.has("nvim-0.10") == 1,
+    inlay_hints = { -- {{{
+      -- Options other than `highlight' and `priority' only work
+      -- if `inline' is disabled
+      inline = vim.fn.has("nvim-0.10") == 1,
 
-        -- Only show inlay hints for the current line
-        only_current_line = false,
+      -- Only show inlay hints for the current line
+      only_current_line = false,
 
-        -- Event which triggers a refresh of the inlay hints.
-        -- You can make this { "CursorMoved" } or { "CursorMoved,CursorMovedI" } but
-        -- note that this may cause higher CPU usage.
-        -- This option is only respected when only_current_line is true.
-        only_current_line_autocmd = {"CursorHold"},
+      -- Event which triggers a refresh of the inlay hints.
+      -- You can make this { "CursorMoved" } or { "CursorMoved,CursorMovedI" } but
+      -- note that this may cause higher CPU usage.
+      -- This option is only respected when only_current_line is true.
+      only_current_line_autocmd = {"CursorHold"},
 
-        -- whether to show parameter hints with the inlay hints or not
-        show_parameter_hints = true,
+      -- whether to show parameter hints with the inlay hints or not
+      show_parameter_hints = true,
 
-        -- prefix for parameter hints
-        parameter_hints_prefix = "<- ",
+      -- prefix for parameter hints
+      parameter_hints_prefix = "<- ",
 
-        -- prefix for all the other hints (type, chaining)
-        other_hints_prefix = "=> ",
+      -- prefix for all the other hints (type, chaining)
+      other_hints_prefix = "=> ",
 
-        -- whether to align to the length of the longest line in the file
-        max_len_align = false,
+      -- whether to align to the length of the longest line in the file
+      max_len_align = false,
 
-        -- padding from the left if max_len_align is true
-        max_len_align_padding = 1,
+      -- padding from the left if max_len_align is true
+      max_len_align_padding = 1,
 
-        -- whether to align to the extreme right or not
-        right_align = false,
+      -- whether to align to the extreme right or not
+      right_align = false,
 
-        -- padding from the right if right_align is true
-        right_align_padding = 7, -- The color of the hints
-        highlight = "Comment",
+      -- padding from the right if right_align is true
+      right_align_padding = 7, -- The color of the hints
+      highlight = "Comment",
 
-        -- The highlight group priority for extmark
-        priority = 100,
+      -- The highlight group priority for extmark
+      priority = 100,
+    }, -- }}}
+    ast = { -- {{{
+      -- These are unicode, should be available in any font
+      role_icons = { -- {{{
+        type = "🄣",
+        declaration = "🄓",
+        expression = "🄔",
+        statement = ";",
+        specifier = "🄢",
+        ["template argument"] = "🆃",
       }, -- }}}
-      ast = { -- {{{
-        -- These are unicode, should be available in any font
-        role_icons = { -- {{{
-          type = "🄣",
-          declaration = "🄓",
-          expression = "🄔",
-          statement = ";",
-          specifier = "🄢",
-          ["template argument"] = "🆃",
-        }, -- }}}
-        kind_icons = { -- {{{
-          Compound = "🄲",
-          Recovery = "🅁",
-          TranslationUnit = "🅄",
-          PackExpansion = "🄿",
-          TemplateTypeParm = "🅃",
-          TemplateTemplateParm = "🅃",
-          TemplateParamObject = "🅃",
-        }, -- }}}
-        highlights = {detail = "Comment"},
+      kind_icons = { -- {{{
+        Compound = "🄲",
+        Recovery = "🅁",
+        TranslationUnit = "🅄",
+        PackExpansion = "🄿",
+        TemplateTypeParm = "🅃",
+        TemplateTemplateParm = "🅃",
+        TemplateParamObject = "🅃",
       }, -- }}}
-      -- {{{
-      memory_usage = {border = "none"},
-      symbol_info = {border = "none"},
-      -- }}}
-    }
+      highlights = {detail = "Comment"},
+    }, -- }}}
+    -- {{{
+    memory_usage = {border = "none"},
+    symbol_info = {border = "none"},
+    -- }}}
+  }
 )
 
 lazy_setup(
   {"elixir"}, "elixirls", {
-      -- boilerplate {{{
-      preselectSupport = false,
-      preselect = false,
-      single_file_support = true,
-      on_attach = lsp_attach,
-      capabilities = Capabilities, -- }}}
-      settings = { -- {{{
-        fetchDeps = false,
-        suggestSpecs = true,
-        dialyzerEnabled = true,
-        incrementalDialyzer = true,
-        enableTestLenses = true,
-        mixEnv = true,
-      },
-      cmd = {"elixir-ls"},
-      -- }}}
-    }
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities, -- }}}
+    settings = { -- {{{
+      fetchDeps = false,
+      suggestSpecs = true,
+      dialyzerEnabled = true,
+      incrementalDialyzer = true,
+      enableTestLenses = true,
+      mixEnv = true,
+    },
+    cmd = {"elixir-ls"},
+    -- }}}
+  }
 )
 
 lazy_setup(
   {"ps1"}, "powershell_es", {
-      -- boilerplate {{{
-      preselectSupport = false,
-      preselect = false,
-      single_file_support = true,
-      on_attach = lsp_attach,
-      capabilities = Capabilities, -- }}}
-      settings = { -- {{{
-      },
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities, -- }}}
+    settings = { -- {{{
+    },
 
-      bundle_path = "~/.powershell_es",
-      -- }}}
-    }
+    bundle_path = "~/.powershell_es",
+    -- }}}
+  }
 )
 
 lazy_setup(
   {"arduino"}, "arduino_language_server", {
-      -- boilerplate {{{
-      preselectSupport = false,
-      preselect = false,
-      single_file_support = true,
-      on_attach = lsp_attach,
-      capabilities = Capabilities,
-      -- }}}
-      cmd = { --  {{{
-        "arduino-language-server",
-        -- "-log",
-        "-jobs",
-        "0",
-        -- gives nothing
-        -- "-skip-libraries-discovery-on-rebuild",
-      }, --  }}}
-      settings = { -- {{{
-      },
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities,
+    -- }}}
+    cmd = { --  {{{
+      "arduino-language-server",
+      -- "-log",
+      "-jobs",
+      "0",
+      -- gives nothing
+      -- "-skip-libraries-discovery-on-rebuild",
+    }, --  }}}
+    settings = { -- {{{
+    },
 
-      -- disabledFeatures = { "semanticTokens" },
-      autostart = true,
-      -- }}}
-    }
+    -- disabledFeatures = { "semanticTokens" },
+    autostart = true,
+    -- }}}
+  }
 )
 
 -- {{{
