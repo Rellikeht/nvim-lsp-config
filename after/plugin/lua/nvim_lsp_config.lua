@@ -31,7 +31,8 @@ if vim.fn.has("nvim-0.11.2") == 1 then
     vim.lsp.config(name, config)
   end
   lsp_exe = function(name)
-    return vim.lsp.config[name] == nil or
+    return not vim.lsp.config[name] or
+             not vim.lsp.config[name].cmd or
              vim.fn.executable(vim.lsp.config[name].cmd[1]) == 1
   end
 else
@@ -280,7 +281,7 @@ lazy_setup(
           pylsp_mypy = {
             enabled = true,
             live_mode = false,
-            dmypy = true,
+            dmypy = false,
           },
           pylint = {enabled = false, executable = "pylint"},
           pyls_isort = {
