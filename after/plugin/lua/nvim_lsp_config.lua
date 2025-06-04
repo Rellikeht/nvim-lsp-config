@@ -1,35 +1,74 @@
+if vim.fn.has("nvim-0.10") == 0 then
+  return -- Not supported so don't even bother :(
+end
+
 -- helpers {{{
----@diagnostic disable: undefined-global
-local lspconfig = require("lspconfig")
-
 ---@diagnostic disable: unused-local
-local util = require("lspconfig.util")
-
+local lspconfig_util = require("lspconfig.util")
 local lazy_utils = require("lazy_utils")
 
-local function default_setup_server(server)
-  local config = lspconfig[server]
-  if vim.fn.executable(
-    config.document_config.default_config.cmd[1]
-  ) == 0 then return end
-  config.setup(
-    {
-      preselectSupport = false,
-      preselect = false,
-      single_file_support = true,
-      on_attach = lsp_attach,
-      capabilities = Capabilities,
-      settings = {telemetry = {enable = false}},
-    }
-  )
+local default_server_setup = {
+  preselectSupport = false,
+  preselect = false,
+  single_file_support = true,
+  on_attach = lsp_attach,
+  capabilities = Capabilities,
+  settings = {telemetry = {enable = false}},
+}
+
+local lsp_config, lsp_exe
+if vim.fn.has("nvim-0.11") == 1 then
+  lsp_config = function(name, config)
+    vim.lsp.config(name, config)
+  end
+  lsp_exe = function(name)
+    return vim.fn.executable(vim.lsp.config[name].cmd[1]) == 1
+  end
+else
+  local lspconfig = require("lspconfig")
+  lsp_config = function(name, config)
+    lspconfig[name].setup(config)
+  end
+  lsp_exe = function(name)
+    return vim.fn.executable(
+      lspconfig[name].document_config.default_config.cmd[1]
+    ) == 1
+  end
 end
 
 local server_augroup_id = 0
-local function lazy_setup(filetypes, load_function)
+local function lazy_setup(filetypes, name, loader, args)
   lazy_utils.load_on_filetypes(
     filetypes, function()
-      load_function()
-      vim.cmd.LspStart()
+      if not lsp_exe(name) then return end
+      local success, setup = pcall(loader, args)
+      if success then
+        lsp_config(name, setup)
+      else
+        lsp_config(name, loader)
+      end
+
+      -- all because shit won't start on it's own when 
+      -- it's needed and will start when it isn't
+      vim.cmd.LspStart(name)
+      if vim.fn.filereadable(vim.fn.expand("%")) == 1 then
+        vim.cmd.edit()
+      else
+        -- price for lazy starging after writing is high
+        local gid = vim.api.nvim_create_augroup(
+          "start_" .. name, {}
+        )
+        vim.api.nvim_create_autocmd(
+          {"BufWritePost"}, {
+            pattern = vim.fn.expand("%"),
+            group = gid,
+            callback = function()
+              vim.api.nvim_del_augroup_by_id(gid)
+              vim.cmd.edit()
+            end,
+          }
+        )
+      end
     end
   )
 end
@@ -41,7 +80,7 @@ end
 vim.api.nvim_create_user_command(
   "LspConfig", function(opts)
     for _, name in pairs(opts.fargs) do
-      default_setup_server(name)
+      lsp_config(name, default_server_setup)
     end
   end, {nargs = "+"}
 )
@@ -124,252 +163,228 @@ local servers = { -- {{{
 for ftypes, names in pairs(servers) do
   if type(names) == "table" then
     for _, name in pairs(names) do
-      lazy_setup(
-        ftypes, function() default_setup_server(name) end
-      )
+      lazy_setup(ftypes, name, default_server_setup)
     end
   else
-    lazy_setup(
-      ftypes, function() default_setup_server(names) end
-    )
+    lazy_setup(ftypes, names, default_server_setup)
   end
 end
--- universal
-default_setup_server("ast_grep")
+
+-- TODO is this optimal way to do this
+if vim.fn.executable("ast-grep") == 1 then
+  lazy_setup("*", "ast_grep", default_server_setup)
+  -- lsp_config("ast_grep", default_server_setup)
+end
 
 -- }}}
 
 lazy_setup(
-  {"lua"}, function()
-    lspconfig.lua_ls.setup(
-      {
-        -- boilerplate {{{
-        preselectSupport = false,
-        preselect = false,
-        single_file_support = true,
-        on_attach = lsp_attach,
-        capabilities = Capabilities, -- }}}
-        on_init = function(client) -- {{{
-          ---@diagnostic disable: undefined-field
-          if client.workspace_folders then
-            local path = client.workspace_folders[1].name
-            if vim.loop.fs_stat(path .. "/.luarc.json") or
-              vim.loop.fs_stat(path .. "/.luarc.jsonc") then
-              return
-            end
+  {"lua"}, "lua_ls", {
+      -- boilerplate {{{
+      preselectSupport = false,
+      preselect = false,
+      single_file_support = true,
+      on_attach = lsp_attach,
+      capabilities = Capabilities, -- }}}
+      on_init = function(client) -- {{{
+        ---@diagnostic disable: undefined-field
+        if client.workspace_folders then
+          local path = client.workspace_folders[1].name
+          if vim.loop.fs_stat(path .. "/.luarc.json") or
+            vim.loop.fs_stat(path .. "/.luarc.jsonc") then
+            return
           end
+        end
 
-          client.config.settings.Lua = vim.tbl_deep_extend(
-            "force", client.config.settings.Lua, {
-              runtime = {
-                -- Tell the language server which version of Lua you're using
-                -- (most likely LuaJIT in the case of Neovim)
-                version = "LuaJIT",
-              }, -- Make the server aware of Neovim runtime files
-              workspace = {
-                checkThirdParty = false,
-                library = {
-                  vim.env.VIMRUNTIME,
-                  -- Depending on the usage, you might want to add additional paths here.
-                  -- "${3rd}/luv/library"
-                  -- "${3rd}/busted/library",
-                },
-
-                -- or pull in all of 'runtimepath'. NOTE: this is a lot slower
-                -- library = vim.api.nvim_get_runtime_file("", true)
-              },
-            }
-          )
-        end, -- }}}
-        settings = { -- {{{
-          Lua = {
+        client.config.settings.Lua = vim.tbl_deep_extend(
+          "force", client.config.settings.Lua, {
             runtime = {
-              version = "LuaJIT", -- Setup your lua path
-              path = {
-                "?.lua",
-                "?/init.lua",
-                unpack(vim.split(package.path, ";")),
-              },
-            },
-            hint = {enable = true},
-            diagnostics = {
-              -- Get the language server to recognize the `vim` global
-              globals = {"vim", "require"},
-            },
+              -- Tell the language server which version of Lua you're using
+              -- (most likely LuaJIT in the case of Neovim)
+              version = "LuaJIT",
+            }, -- Make the server aware of Neovim runtime files
             workspace = {
-              -- Make the server aware of Neovim runtime files
-              -- library = vim.api.nvim_get_runtime_file("", true),
-            },
-            format = {
-              defaultConfig = {
-                indent_style = "space",
-                indent_size = 2,
+              checkThirdParty = false,
+              library = {
+                vim.env.VIMRUNTIME,
+                -- Depending on the usage, you might want to add additional paths here.
+                -- "${3rd}/luv/library"
+                -- "${3rd}/busted/library",
               },
+
+              -- or pull in all of 'runtimepath'. NOTE: this is a lot slower
+              -- library = vim.api.nvim_get_runtime_file("", true)
             },
-            telemetry = {enable = false},
+          }
+        )
+      end, -- }}}
+      settings = { -- {{{
+        Lua = {
+          runtime = {
+            version = "LuaJIT", -- Setup your lua path
+            path = {
+              "?.lua",
+              "?/init.lua",
+              unpack(vim.split(package.path, ";")),
+            },
           },
-        }, -- }}}
-      }
-    )
-  end
+          hint = {enable = true},
+          diagnostics = {
+            -- Get the language server to recognize the `vim` global
+            globals = {"vim", "require"},
+          },
+          workspace = {
+            -- Make the server aware of Neovim runtime files
+            -- library = vim.api.nvim_get_runtime_file("", true),
+          },
+          format = {
+            defaultConfig = {
+              indent_style = "space",
+              indent_size = 2,
+            },
+          },
+          telemetry = {enable = false},
+        },
+      }, -- }}}
+    }
 )
 
 lazy_setup(
-  {"python"}, function()
-    lspconfig.pylsp.setup(
-      {
-        -- boilerplate {{{
-        preselectSupport = false,
-        preselect = false,
-        single_file_support = true,
-        on_attach = lsp_attach,
-        capabilities = Capabilities,
-        -- }}}
-        settings = { -- {{{
-          pylsp = {
-            plugins = {
-              jedi_completion = {
-                --
-                fuzzy = true,
-                eager = true,
-                include_funciton_objects = true,
-              },
-              pylsp_mypy = {
-                enabled = true,
-                live_mode = false,
-                dmypy = true,
-              },
-              pylint = {enabled = false, executable = "pylint"},
-              pyls_isort = {
-                -- import sorting
-                enabled = true,
-              },
-              pycodestyle = {maxLineLength = 78},
-              rope_autoimport = {enabled = true, eager = true},
-              ruff = {
-                enabled = true,
-                formatEnabled = true,
-                unsafeFixes = true,
-              },
+  {"python"}, "pylsp", {
+      -- boilerplate {{{
+      preselectSupport = false,
+      preselect = false,
+      single_file_support = true,
+      on_attach = lsp_attach,
+      capabilities = Capabilities,
+      -- }}}
+      settings = { -- {{{
+        pylsp = {
+          plugins = {
+            jedi_completion = {
+              --
+              fuzzy = true,
+              eager = true,
+              include_funciton_objects = true,
+            },
+            pylsp_mypy = {
+              enabled = true,
+              live_mode = false,
+              dmypy = true,
+            },
+            pylint = {enabled = false, executable = "pylint"},
+            pyls_isort = {
+              -- import sorting
+              enabled = true,
+            },
+            pycodestyle = {maxLineLength = 78},
+            rope_autoimport = {enabled = true, eager = true},
+            ruff = {
+              enabled = true,
+              formatEnabled = true,
+              unsafeFixes = true,
             },
           },
+        },
 
-          flags = {debounce_text_changes = 100},
-        }, -- }}}
-      }
-    )
-  end
+        flags = {debounce_text_changes = 100},
+      }, -- }}}
+    }
 )
 
 lazy_setup(
-  {"nix"}, function()
-    lspconfig.nil_ls.setup(
-      {
-        -- boilerplate {{{
-        preselectSupport = false,
-        preselect = false,
-        single_file_support = true,
-        on_attach = lsp_attach,
-        capabilities = Capabilities, -- }}}
-        settings = { -- {{{
-          ["nil"] = {
-            formatting = {command = {"alejandra"}},
-            diagnostics = {
-              ignored = {
-                -- "unused_rec",
-                -- "empty_let_in",
-                -- "unused_with",
-              },
-            },
-            nix = {
-              maxMemoryMB = 4096,
-              flake = {
-                --
-                autoArchive = false,
-                autoEvalInputs = false,
-              },
+  {"nix"}, "nil_ls", {
+      -- boilerplate {{{
+      preselectSupport = false,
+      preselect = false,
+      single_file_support = true,
+      on_attach = lsp_attach,
+      capabilities = Capabilities, -- }}}
+      settings = { -- {{{
+        ["nil"] = {
+          formatting = {command = {"alejandra"}},
+          diagnostics = {
+            ignored = {
+              -- "unused_rec",
+              -- "empty_let_in",
+              -- "unused_with",
             },
           },
-        }, -- }}}
-      }
-    )
-  end
+          nix = {
+            maxMemoryMB = 4096,
+            flake = {
+              --
+              autoArchive = false,
+              autoEvalInputs = false,
+            },
+          },
+        },
+      }, -- }}}
+    }
 )
 
 lazy_setup(
-  {"nim"}, function()
-    lspconfig.nim_langserver.setup(
-      {
-        -- boilerplate {{{
-        preselectSupport = false,
-        preselect = false,
-        single_file_support = true,
-        on_attach = lsp_attach,
-        capabilities = Capabilities, -- }}}
-        settings = { -- {{{
-          nim = {
-            notificationVerbosity = "error",
-            nimsuggestIdleTimeout = 9999999999,
-            autoRestart = true,
-            logNimsuggest = false,
-          },
-        }, -- }}}
-      }
-    )
-  end
+  {"nim"}, "nim_langserver", {
+      -- boilerplate {{{
+      preselectSupport = false,
+      preselect = false,
+      single_file_support = true,
+      on_attach = lsp_attach,
+      capabilities = Capabilities, -- }}}
+      settings = { -- {{{
+        nim = {
+          notificationVerbosity = "error",
+          nimsuggestIdleTimeout = 9999999999,
+          autoRestart = true,
+          logNimsuggest = false,
+        },
+      }, -- }}}
+    }
 )
 
 -- fucking almost useless shit
 -- that crashes on every fucking input
 lazy_setup(
-  {"typst"}, function()
-    lspconfig.tinymist.setup(
-      {
-        -- boilerplate {{{
-        preselectSupport = false,
-        preselect = false,
-        single_file_support = true,
-        on_attach = lsp_attach,
-        capabilities = Capabilities,
+  {"typst"}, "tinymist", {
+      -- boilerplate {{{
+      preselectSupport = false,
+      preselect = false,
+      single_file_support = true,
+      on_attach = lsp_attach,
+      capabilities = Capabilities,
+      offset_encoding = "utf-8",
+      -- }}}
+      settings = { -- {{{
         offset_encoding = "utf-8",
-        -- }}}
-        settings = { -- {{{
-          offset_encoding = "utf-8",
-          semanticTokens = "disable",
-          exportPdf = "never",
-        }, -- }}}
-      }
-    )
-  end
+        semanticTokens = "disable",
+        exportPdf = "never",
+      }, -- }}}
+    }
 )
 
 lazy_setup(
-  {"go", "gomod", "gowork", "gotmpl"}, function()
-    lspconfig.gopls.setup(
-      {
-        -- boilerplate {{{
-        preselectSupport = false,
-        preselect = false,
-        single_file_support = true,
-        on_attach = lsp_attach,
-        capabilities = Capabilities, -- }}}
-        settings = { -- {{{
-          gopls = {
-            completionBudget = "0",
-            usePlaceholders = true,
-            experimentalPostfixCompletions = true,
-            analyses = {unusedparams = true, shadow = true},
-            staticcheck = true,
-            vulncheck = "Imports",
-          },
-        }, -- }}}
-      }
-    )
-  end
+  {"go", "gomod", "gowork", "gotmpl"}, "gopls", {
+      -- boilerplate {{{
+      preselectSupport = false,
+      preselect = false,
+      single_file_support = true,
+      on_attach = lsp_attach,
+      capabilities = Capabilities, -- }}}
+      settings = { -- {{{
+        gopls = {
+          completionBudget = "0",
+          usePlaceholders = true,
+          experimentalPostfixCompletions = true,
+          analyses = {unusedparams = true, shadow = true},
+          staticcheck = true,
+          vulncheck = "Imports",
+        },
+      }, -- }}}
+    }
 )
 
 lazy_setup(
-  {"julia"}, function()
+  {"julia"}, "julials", function()
     local settings = {
       -- boilerplate {{{
       preselectSupport = false,
@@ -379,10 +394,10 @@ lazy_setup(
       capabilities = Capabilities,
       settings = {telemetry = {enable = false}}, -- }}}
     }
-    if vim.fn.executable("julials") then
+    if vim.fn.executable("julials") == 1 then
       settings.cmd = {"julials"}
     end
-    lspconfig.julials.setup(settings)
+    return settings
   end
 )
 
@@ -391,36 +406,195 @@ lazy_setup(
 
 -- No idea if all of that is really needed
 lazy_setup(
-  {"rust"}, function()
-    lspconfig.rust_analyzer.setup(
-      {
-        -- boilerplate {{{
-        on_attach = lsp_attach,
-        preselectSupport = false,
-        preselect = false,
-        single_file_support = true,
-        capabilities = Capabilities, -- }}}
-        settings = { -- {{{
-          ["rust-analyzer"] = {
-            standalone = true,
-            workspaceFolders = false,
-            workspace = {workspaceFolders = false},
+  {"rust"}, "rust_analyzer", {
+      -- boilerplate {{{
+      on_attach = lsp_attach,
+      preselectSupport = false,
+      preselect = false,
+      single_file_support = true,
+      capabilities = Capabilities, -- }}}
+      settings = { -- {{{
+        ["rust-analyzer"] = {
+          standalone = true,
+          workspaceFolders = false,
+          workspace = {workspaceFolders = false},
 
-            completion = {contextSupport = true},
-            imports = {
-              granularity = {group = "module"},
-              prefix = "self",
-            },
-            cargo = {
-              buildScripts = {enable = true},
-              allFeatures = true,
-            },
-            procMacro = {enable = true},
+          completion = {contextSupport = true},
+          imports = {
+            granularity = {group = "module"},
+            prefix = "self",
           },
+          cargo = {
+            buildScripts = {enable = true},
+            allFeatures = true,
+          },
+          procMacro = {enable = true},
+        },
+      }, -- }}}
+    }
+)
+
+local c_files = {"c", "cpp", "objc", "objcpp", "cuda"}
+lazy_setup(
+  c_files, "clangd", {
+      -- boilerplate {{{
+      preselectSupport = false,
+      preselect = false,
+      single_file_support = true,
+      on_attach = lsp_attach,
+      capabilities = Capabilities, -- }}}
+      cmd = { -- {{{
+        "clangd",
+        "--clang-tidy",
+        "--enable-config",
+        "--header-insertion=never",
+        "--completion-style=detailed",
+        "--pch-storage=memory",
+        "--background-index",
+        "--background-index-priority=low",
+      }, -- }}}
+      filetypes = { --  {{{
+        "c",
+        "cpp",
+        "objc",
+        "objcpp",
+        "cuda",
+      }, --  }}}
+      settings = { -- {{{
+      }, -- }}}
+    }
+)
+lazy_setup(
+
+  c_files, "clangd_extensions", {
+      inlay_hints = { -- {{{
+        -- Options other than `highlight' and `priority' only work
+        -- if `inline' is disabled
+        inline = vim.fn.has("nvim-0.10") == 1,
+
+        -- Only show inlay hints for the current line
+        only_current_line = false,
+
+        -- Event which triggers a refresh of the inlay hints.
+        -- You can make this { "CursorMoved" } or { "CursorMoved,CursorMovedI" } but
+        -- note that this may cause higher CPU usage.
+        -- This option is only respected when only_current_line is true.
+        only_current_line_autocmd = {"CursorHold"},
+
+        -- whether to show parameter hints with the inlay hints or not
+        show_parameter_hints = true,
+
+        -- prefix for parameter hints
+        parameter_hints_prefix = "<- ",
+
+        -- prefix for all the other hints (type, chaining)
+        other_hints_prefix = "=> ",
+
+        -- whether to align to the length of the longest line in the file
+        max_len_align = false,
+
+        -- padding from the left if max_len_align is true
+        max_len_align_padding = 1,
+
+        -- whether to align to the extreme right or not
+        right_align = false,
+
+        -- padding from the right if right_align is true
+        right_align_padding = 7, -- The color of the hints
+        highlight = "Comment",
+
+        -- The highlight group priority for extmark
+        priority = 100,
+      }, -- }}}
+      ast = { -- {{{
+        -- These are unicode, should be available in any font
+        role_icons = { -- {{{
+          type = "🄣",
+          declaration = "🄓",
+          expression = "🄔",
+          statement = ";",
+          specifier = "🄢",
+          ["template argument"] = "🆃",
         }, -- }}}
-      }
-    )
-  end
+        kind_icons = { -- {{{
+          Compound = "🄲",
+          Recovery = "🅁",
+          TranslationUnit = "🅄",
+          PackExpansion = "🄿",
+          TemplateTypeParm = "🅃",
+          TemplateTemplateParm = "🅃",
+          TemplateParamObject = "🅃",
+        }, -- }}}
+        highlights = {detail = "Comment"},
+      }, -- }}}
+      -- {{{
+      memory_usage = {border = "none"},
+      symbol_info = {border = "none"},
+      -- }}}
+    }
+)
+
+lazy_setup(
+  {"elixir"}, "elixirls", {
+      -- boilerplate {{{
+      preselectSupport = false,
+      preselect = false,
+      single_file_support = true,
+      on_attach = lsp_attach,
+      capabilities = Capabilities, -- }}}
+      settings = { -- {{{
+        fetchDeps = false,
+        suggestSpecs = true,
+        dialyzerEnabled = true,
+        incrementalDialyzer = true,
+        enableTestLenses = true,
+        mixEnv = true,
+      },
+      cmd = {"elixir-ls"},
+      -- }}}
+    }
+)
+
+lazy_setup(
+  {"ps1"}, "powershell_es", {
+      -- boilerplate {{{
+      preselectSupport = false,
+      preselect = false,
+      single_file_support = true,
+      on_attach = lsp_attach,
+      capabilities = Capabilities, -- }}}
+      settings = { -- {{{
+      },
+
+      bundle_path = "~/.powershell_es",
+      -- }}}
+    }
+)
+
+lazy_setup(
+  {"arduino"}, "arduino_language_server", {
+      -- boilerplate {{{
+      preselectSupport = false,
+      preselect = false,
+      single_file_support = true,
+      on_attach = lsp_attach,
+      capabilities = Capabilities,
+      -- }}}
+      cmd = { --  {{{
+        "arduino-language-server",
+        -- "-log",
+        "-jobs",
+        "0",
+        -- gives nothing
+        -- "-skip-libraries-discovery-on-rebuild",
+      }, --  }}}
+      settings = { -- {{{
+      },
+
+      -- disabledFeatures = { "semanticTokens" },
+      autostart = true,
+      -- }}}
+    }
 )
 
 -- {{{
@@ -437,8 +611,8 @@ lazy_setup(
 --     --       "Pipfile",
 --     --       "pyproject.toml"
 --     --     }
---     --     return util.root_pattern(unpack(root_files))(fname) or
---     --              util.find_git_ancestor(fname)
+--     --     return lspconfig_util.root_pattern(unpack(root_files))(fname) or
+--     --              lspconfig_util.find_git_ancestor(fname)
 --     --   end,
 
 --     single_file_support = true,
@@ -454,184 +628,6 @@ lazy_setup(
 -- )
 
 -- }}}
-
-lazy_setup(
-  {"c", "cpp", "objc", "objcpp", "cuda"}, function()
-    lspconfig.clangd.setup(
-      {
-        -- boilerplate {{{
-        preselectSupport = false,
-        preselect = false,
-        single_file_support = true,
-        on_attach = lsp_attach,
-        capabilities = Capabilities, -- }}}
-        cmd = { -- {{{
-          "clangd",
-          "--clang-tidy",
-          "--enable-config",
-          "--header-insertion=never",
-          "--completion-style=detailed",
-          "--pch-storage=memory",
-          "--background-index",
-          "--background-index-priority=low",
-        }, -- }}}
-        filetypes = { --  {{{
-          "c",
-          "cpp",
-          "objc",
-          "objcpp",
-          "cuda",
-        }, --  }}}
-        settings = { -- {{{
-        }, -- }}}
-      }
-    )
-
-    require("clangd_extensions").setup(
-      {
-        inlay_hints = { -- {{{
-          -- Options other than `highlight' and `priority' only work
-          -- if `inline' is disabled
-          inline = vim.fn.has("nvim-0.10") == 1,
-
-          -- Only show inlay hints for the current line
-          only_current_line = false,
-
-          -- Event which triggers a refresh of the inlay hints.
-          -- You can make this { "CursorMoved" } or { "CursorMoved,CursorMovedI" } but
-          -- note that this may cause higher CPU usage.
-          -- This option is only respected when only_current_line is true.
-          only_current_line_autocmd = {"CursorHold"},
-
-          -- whether to show parameter hints with the inlay hints or not
-          show_parameter_hints = true,
-
-          -- prefix for parameter hints
-          parameter_hints_prefix = "<- ",
-
-          -- prefix for all the other hints (type, chaining)
-          other_hints_prefix = "=> ",
-
-          -- whether to align to the length of the longest line in the file
-          max_len_align = false,
-
-          -- padding from the left if max_len_align is true
-          max_len_align_padding = 1,
-
-          -- whether to align to the extreme right or not
-          right_align = false,
-
-          -- padding from the right if right_align is true
-          right_align_padding = 7, -- The color of the hints
-          highlight = "Comment",
-
-          -- The highlight group priority for extmark
-          priority = 100,
-        }, -- }}}
-        ast = { -- {{{
-          -- These are unicode, should be available in any font
-          role_icons = { -- {{{
-            type = "🄣",
-            declaration = "🄓",
-            expression = "🄔",
-            statement = ";",
-            specifier = "🄢",
-            ["template argument"] = "🆃",
-          }, -- }}}
-          kind_icons = { -- {{{
-            Compound = "🄲",
-            Recovery = "🅁",
-            TranslationUnit = "🅄",
-            PackExpansion = "🄿",
-            TemplateTypeParm = "🅃",
-            TemplateTemplateParm = "🅃",
-            TemplateParamObject = "🅃",
-          }, -- }}}
-          highlights = {detail = "Comment"},
-        }, -- }}}
-        -- {{{
-        memory_usage = {border = "none"},
-        symbol_info = {border = "none"},
-        -- }}}
-      }
-    )
-  end
-)
-
-lazy_setup(
-  {"elixir"}, function()
-    lspconfig.elixirls.setup(
-      {
-        -- boilerplate {{{
-        preselectSupport = false,
-        preselect = false,
-        single_file_support = true,
-        on_attach = lsp_attach,
-        capabilities = Capabilities, -- }}}
-        settings = { -- {{{
-          fetchDeps = false,
-          suggestSpecs = true,
-          dialyzerEnabled = true,
-          incrementalDialyzer = true,
-          enableTestLenses = true,
-          mixEnv = true,
-        },
-        cmd = {"elixir-ls"},
-        -- }}}
-      }
-    )
-  end
-)
-
-lazy_setup(
-  {"ps1"}, function()
-    lspconfig.powershell_es.setup(
-      {
-        -- boilerplate {{{
-        preselectSupport = false,
-        preselect = false,
-        single_file_support = true,
-        on_attach = lsp_attach,
-        capabilities = Capabilities, -- }}}
-        settings = { -- {{{
-        },
-
-        bundle_path = "~/.powershell_es",
-        -- }}}
-      }
-    )
-  end
-)
-
-lazy_setup(
-  {"arduino"}, function()
-    lspconfig.arduino_language_server.setup(
-      {
-        -- boilerplate {{{
-        preselectSupport = false,
-        preselect = false,
-        single_file_support = true,
-        on_attach = lsp_attach,
-        capabilities = Capabilities,
-        -- }}}
-        cmd = { --  {{{
-          "arduino-language-server",
-          -- "-log",
-          "-jobs",
-          "0",
-          -- gives nothing
-          -- "-skip-libraries-discovery-on-rebuild",
-        }, --  }}}
-        settings = { -- {{{
-        },
-
-        -- disabledFeatures = { "semanticTokens" },
-        autostart = true,
-        -- }}}
-      }
-    )
-  end
-)
 
 -- {{{
 
