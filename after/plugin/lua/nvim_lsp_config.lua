@@ -25,46 +25,22 @@ local default_server_setup = {
   settings = { telemetry = { enable = false } },
 }
 
--- local lsp_config, lsp_exe
 local lsp_config
 if vim.fn.has("nvim-0.11.2") == 1 then
   lsp_config = function(name, config)
     vim.lsp.config(name, config)
   end
-  -- lsp_exe = function(name, exe)
-  --   if exe then
-  --     if vim.fn.executable(exe) == 1 then
-  --       return true
-  --     end
-  --   end
-  --   return not vim.lsp.config[name] or
-  --       (vim.lsp.config[name].cmd and
-  --         vim.fn.executable(vim.lsp.config[name].cmd[1]) == 1)
-  -- end
 else
   local lspconfig = require("lspconfig")
   lsp_config = function(name, config)
     lspconfig[name].setup(config)
   end
-  -- lsp_exe = function(name, exe)
-  --   if exe then
-  --     if vim.fn.executable(exe) == 1 then
-  --       return true
-  --     end
-  --   end
-  --   return not lspconfig[name] or
-  --       (lspconfig[name].document_config.default_config.cmd and
-  --         vim.fn.executable(
-  --           lspconfig[name].document_config.default_config.cmd[1]
-  --         ) == 1)
-  -- end
 end
 
 local server_augroup_id = 0
 local function lazy_setup(filetypes, name, loader, args)
   lazy_utils.load_on_filetypes(
     filetypes, function()
-      -- if not lsp_exe(name, exe) then return end
       local success, setup = pcall(loader, args)
       if success then
         lsp_config(name, setup)
@@ -74,26 +50,9 @@ local function lazy_setup(filetypes, name, loader, args)
 
       -- all because shit won't start on it's own when
       -- it's needed and will start when it isn't
-      vim.cmd.LspStart(name)
-      -- what the fuck
-      -- if vim.fn.filereadable(vim.fn.expand("%")) == 1 then
-      --   reedit()
-      -- else
-      -- price for lazy starting after writing is high
-      -- local gid = vim.api.nvim_create_augroup(
-      --   "start_" .. name, {}
-      -- )
-      -- vim.api.nvim_create_autocmd(
-      --   { "BufWritePost" }, {
-      --     pattern = vim.fn.expand("%"),
-      --     group = gid,
-      --     callback = function()
-      --       vim.api.nvim_del_augroup_by_id(gid)
-      --       vim.cmd.edit()
-      --     end,
-      --   }
-      -- )
-      -- end
+      lazy_utils.load_on_cursor(function()
+        vim.cmd.LspStart(name)
+      end)
     end
   )
 end
