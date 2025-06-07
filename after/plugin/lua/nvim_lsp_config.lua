@@ -93,14 +93,14 @@ vim.api.nvim_create_user_command(
     for _, name in pairs(opts.fargs) do
       lsp_config(name, default_server_setup)
     end
-  end, {nargs = "+"}
+  end, { nargs = "+" }
 )
 
 --  }}}
 
 local servers = { -- {{{
   -- must have
-  [{"python"}] = {
+  [{ "python" }] = {
     -- :(
     -- "pylyzer",
     -- TODO check
@@ -115,15 +115,15 @@ local servers = { -- {{{
     "dune",
     "opam",
   }] = "ocamllsp",
-  [{"haskell", "cabal"}] = "hls",
-  [{"html"}] = "superhtml",
-  [{"html"}] = "html",
-  [{"css", "scss", "less"}] = "cssls",
-  [{"sh", "bash", "zsh"}] = "bashls",
+  [{ "haskell", "cabal" }] = "hls",
+  [{ "html" }] = "superhtml",
+  [{ "html" }] = "html",
+  [{ "css", "scss", "less" }] = "cssls",
+  [{ "sh", "bash", "zsh" }] = "bashls",
 
   -- sometimes needed
-  [{"zig", "zir"}] = "zls",
-  [{"latex", "tex", "plaintex", "bib"}] = "texlab",
+  [{ "zig", "zir" }] = "zls",
+  [{ "latex", "tex", "plaintex", "bib" }] = "texlab",
   [{
     "javascript",
     "javascriptreact",
@@ -131,44 +131,44 @@ local servers = { -- {{{
     "typescript",
     "typescriptreact",
     "typescript.jsx",
-  }] = {"ts_ls", "denols"},
+  }] = { "ts_ls", "denols" },
 
   -- just in case
-  [{"erlang"}] = "erlangls",
-  [{"odin"}] = "ols",
-  [{"nickel", "ncl"}] = "nickel_ls",
-  [{"scala"}] = "metals",
-  [{"kotlin"}] = "kotlin_language_server",
-  [{"ada"}] = "ada_ls",
-  [{"roc"}] = "roc_ls",
-  [{"r", "rmd", "quarto"}] = "r_language_server",
-  [{"teal"}] = "teal_ls",
-  [{"autohotkey"}] = "autohotkey_lsp",
-  [{"yaml.ansible"}] = "ansiblels",
-  [{"dhall"}] = "dhall_lsp_server",
-  [{"star", "bzl", "BUILD.bazel"}] = "starlark_rust",
-  [{"gleam"}] = "gleam",
-  [{"fortran"}] = "fortls",
-  [{"cs"}] = "csharp_ls",
-  [{"clojure"}] = "clojure_lsp",
-  [{"cmake"}] = "neocmake",
-  [{"glsl", "vert", "tesc", "tese", "frag", "geom", "comp"}] = {
+  [{ "erlang" }] = "erlangls",
+  [{ "odin" }] = "ols",
+  [{ "nickel", "ncl" }] = "nickel_ls",
+  [{ "scala" }] = "metals",
+  [{ "kotlin" }] = "kotlin_language_server",
+  [{ "ada" }] = "ada_ls",
+  [{ "roc" }] = "roc_ls",
+  [{ "r", "rmd", "quarto" }] = "r_language_server",
+  [{ "teal" }] = "teal_ls",
+  [{ "autohotkey" }] = "autohotkey_lsp",
+  [{ "yaml.ansible" }] = "ansiblels",
+  [{ "dhall" }] = "dhall_lsp_server",
+  [{ "star", "bzl", "BUILD.bazel" }] = "starlark_rust",
+  [{ "gleam" }] = "gleam",
+  [{ "fortran" }] = "fortls",
+  [{ "cs" }] = "csharp_ls",
+  [{ "clojure" }] = "clojure_lsp",
+  [{ "cmake" }] = "neocmake",
+  [{ "glsl", "vert", "tesc", "tese", "frag", "geom", "comp" }] = {
     "glsl_analyzer",
   },
-  [{"gd", "gdscript", "gdscript3"}] = "gdscript",
-  [{"gdshader", "gdshaderinc"}] = "gdshader_lsp",
+  [{ "gd", "gdscript", "gdscript3" }] = "gdscript",
+  [{ "gdshader", "gdshaderinc" }] = "gdshader_lsp",
 
   -- test and select (or leave multiple)
-  [{"solidity"}] = {"solang", "solc", "solidity_ls"},
-  [{"vhdl", "vhd"}] = {"vhdl_ls", "ghdl_ls"},
-  [{"verilog", "systemverilog"}] = {
+  [{ "solidity" }] = { "solang", "solc", "solidity_ls" },
+  [{ "vhdl", "vhd" }] = { "vhdl_ls", "ghdl_ls" },
+  [{ "verilog", "systemverilog" }] = {
     "svls",
     "veridain",
     "verible",
   },
 
-  [{"scheme.guile"}] = "guile_ls",
-  [{"scheme"}] = "scheme_langserver",
+  [{ "scheme.guile" }] = "guile_ls",
+  [{ "scheme" }] = "scheme_langserver",
 }
 
 for ftypes, names in pairs(servers) do
@@ -190,19 +190,19 @@ end
 -- }}}
 
 lazy_setup(
-  {"lua"}, "lua_ls", {
+  { "lua" }, "lua_ls", {
     -- boilerplate {{{
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
     on_attach = lsp_attach,
     capabilities = Capabilities, -- }}}
-    on_init = function(client) -- {{{
+    on_init = function(client)   -- {{{
       ---@diagnostic disable: undefined-field
       if client.workspace_folders then
         local path = client.workspace_folders[1].name
         if vim.loop.fs_stat(path .. "/.luarc.json") or
-          vim.loop.fs_stat(path .. "/.luarc.jsonc") then
+            vim.loop.fs_stat(path .. "/.luarc.jsonc") then
           return
         end
       end
@@ -228,7 +228,7 @@ lazy_setup(
           },
         }
       )
-    end, -- }}}
+    end,         -- }}}
     settings = { -- {{{
       Lua = {
         runtime = {
@@ -239,10 +239,10 @@ lazy_setup(
             unpack(vim.split(package.path, ";")),
           },
         },
-        hint = {enable = true},
+        hint = { enable = true },
         diagnostics = {
           -- Get the language server to recognize the `vim` global
-          globals = {"vim", "require"},
+          globals = { "vim", "require" },
         },
         workspace = {
           -- Make the server aware of Neovim runtime files
@@ -254,14 +254,14 @@ lazy_setup(
             indent_size = 2,
           },
         },
-        telemetry = {enable = false},
+        telemetry = { enable = false },
       },
     }, -- }}}
   }
 )
 
 lazy_setup(
-  {"python"}, "pylsp", {
+  { "python" }, "pylsp", {
     -- boilerplate {{{
     preselectSupport = false,
     preselect = false,
@@ -283,13 +283,13 @@ lazy_setup(
             live_mode = false,
             dmypy = false,
           },
-          pylint = {enabled = false, executable = "pylint"},
+          pylint = { enabled = false, executable = "pylint" },
           pyls_isort = {
             -- import sorting
             enabled = true,
           },
-          pycodestyle = {maxLineLength = 78},
-          rope_autoimport = {enabled = true, eager = true},
+          pycodestyle = { maxLineLength = 78 },
+          rope_autoimport = { enabled = true, eager = true },
           ruff = {
             enabled = true,
             formatEnabled = true,
@@ -298,22 +298,22 @@ lazy_setup(
         },
       },
 
-      flags = {debounce_text_changes = 100},
+      flags = { debounce_text_changes = 100 },
     }, -- }}}
   }
 )
 
 lazy_setup(
-  {"nix"}, "nil_ls", {
+  { "nix" }, "nil_ls", {
     -- boilerplate {{{
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
     on_attach = lsp_attach,
     capabilities = Capabilities, -- }}}
-    settings = { -- {{{
+    settings = {                 -- {{{
       ["nil"] = {
-        formatting = {command = {"alejandra"}},
+        formatting = { command = { "alejandra" } },
         diagnostics = {
           ignored = {
             -- "unused_rec",
@@ -335,14 +335,14 @@ lazy_setup(
 )
 
 lazy_setup(
-  {"nim"}, "nim_langserver", {
+  { "nim" }, "nim_langserver", {
     -- boilerplate {{{
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
     on_attach = lsp_attach,
     capabilities = Capabilities, -- }}}
-    settings = { -- {{{
+    settings = {                 -- {{{
       nim = {
         notificationVerbosity = "error",
         nimsuggestIdleTimeout = 9999999999,
@@ -356,7 +356,7 @@ lazy_setup(
 -- fucking almost useless shit
 -- that crashes on every fucking input
 lazy_setup(
-  {"typst"}, "tinymist", {
+  { "typst" }, "tinymist", {
     -- boilerplate {{{
     preselectSupport = false,
     preselect = false,
@@ -374,19 +374,19 @@ lazy_setup(
 )
 
 lazy_setup(
-  {"go", "gomod", "gowork", "gotmpl"}, "gopls", {
+  { "go", "gomod", "gowork", "gotmpl" }, "gopls", {
     -- boilerplate {{{
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
     on_attach = lsp_attach,
     capabilities = Capabilities, -- }}}
-    settings = { -- {{{
+    settings = {                 -- {{{
       gopls = {
         completionBudget = "0",
         usePlaceholders = true,
         experimentalPostfixCompletions = true,
-        analyses = {unusedparams = true, shadow = true},
+        analyses = { unusedparams = true, shadow = true },
         staticcheck = true,
         vulncheck = "Imports",
       },
@@ -395,7 +395,7 @@ lazy_setup(
 )
 
 lazy_setup(
-  {"julia"}, "julials", function()
+  { "julia" }, "julials", function()
     local settings = {
       -- boilerplate {{{
       preselectSupport = false,
@@ -403,10 +403,10 @@ lazy_setup(
       single_file_support = true,
       on_attach = lsp_attach,
       capabilities = Capabilities,
-      settings = {telemetry = {enable = false}}, -- }}}
+      settings = { telemetry = { enable = false } }, -- }}}
     }
     if vim.fn.executable("julials") == 1 then
-      settings.cmd = {"julials"}
+      settings.cmd = { "julials" }
     end
     return settings
   end
@@ -417,35 +417,35 @@ lazy_setup(
 
 -- No idea if all of that is really needed
 lazy_setup(
-  {"rust"}, "rust_analyzer", {
+  { "rust" }, "rust_analyzer", {
     -- boilerplate {{{
     on_attach = lsp_attach,
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
     capabilities = Capabilities, -- }}}
-    settings = { -- {{{
+    settings = {                 -- {{{
       ["rust-analyzer"] = {
         standalone = true,
         workspaceFolders = false,
-        workspace = {workspaceFolders = false},
+        workspace = { workspaceFolders = false },
 
-        completion = {contextSupport = true},
+        completion = { contextSupport = true },
         imports = {
-          granularity = {group = "module"},
+          granularity = { group = "module" },
           prefix = "self",
         },
         cargo = {
-          buildScripts = {enable = true},
+          buildScripts = { enable = true },
           allFeatures = true,
         },
-        procMacro = {enable = true},
+        procMacro = { enable = true },
       },
     }, -- }}}
   }
 )
 
-local c_files = {"c", "cpp", "objc", "objcpp", "cuda"}
+local c_files = { "c", "cpp", "objc", "objcpp", "cuda" }
 
 lazy_setup(
   c_files, "clangd", {
@@ -455,7 +455,7 @@ lazy_setup(
     single_file_support = true,
     on_attach = lsp_attach,
     capabilities = Capabilities, -- }}}
-    cmd = { -- {{{
+    cmd = {                      -- {{{
       "clangd",
       "--clang-tidy",
       "--enable-config",
@@ -464,16 +464,16 @@ lazy_setup(
       "--pch-storage=memory",
       "--background-index",
       "--background-index-priority=low",
-    }, -- }}}
+    },            -- }}}
     filetypes = { --  {{{
       "c",
       "cpp",
       "objc",
       "objcpp",
       "cuda",
-    }, --  }}}
+    },           --  }}}
     settings = { -- {{{
-    }, -- }}}
+    },           -- }}}
   }
 )
 
@@ -493,7 +493,7 @@ lazy_utils.load_on_filetypes(
           -- You can make this { "CursorMoved" } or { "CursorMoved,CursorMovedI" } but
           -- note that this may cause higher CPU usage.
           -- This option is only respected when only_current_line is true.
-          only_current_line_autocmd = {"CursorHold"},
+          only_current_line_autocmd = { "CursorHold" },
 
           -- whether to show parameter hints with the inlay hints or not
           show_parameter_hints = true,
@@ -519,8 +519,8 @@ lazy_utils.load_on_filetypes(
 
           -- The highlight group priority for extmark
           priority = 100,
-        }, -- }}}
-        ast = { -- {{{
+        },               -- }}}
+        ast = {          -- {{{
           -- These are unicode, should be available in any font
           role_icons = { -- {{{
             type = "🄣",
@@ -529,7 +529,7 @@ lazy_utils.load_on_filetypes(
             statement = ";",
             specifier = "🄢",
             ["template argument"] = "🆃",
-          }, -- }}}
+          },             -- }}}
           kind_icons = { -- {{{
             Compound = "🄲",
             Recovery = "🅁",
@@ -539,11 +539,11 @@ lazy_utils.load_on_filetypes(
             TemplateTemplateParm = "🅃",
             TemplateParamObject = "🅃",
           }, -- }}}
-          highlights = {detail = "Comment"},
-        }, -- }}}
+          highlights = { detail = "Comment" },
+        },   -- }}}
         -- {{{
-        memory_usage = {border = "none"},
-        symbol_info = {border = "none"},
+        memory_usage = { border = "none" },
+        symbol_info = { border = "none" },
         -- }}}
       }
     )
@@ -551,14 +551,14 @@ lazy_utils.load_on_filetypes(
 )
 
 lazy_setup(
-  {"elixir"}, "elixirls", {
+  { "elixir" }, "elixirls", {
     -- boilerplate {{{
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
     on_attach = lsp_attach,
     capabilities = Capabilities, -- }}}
-    settings = { -- {{{
+    settings = {                 -- {{{
       fetchDeps = false,
       suggestSpecs = true,
       dialyzerEnabled = true,
@@ -566,20 +566,20 @@ lazy_setup(
       enableTestLenses = true,
       mixEnv = true,
     },
-    cmd = {"elixir-ls"},
+    cmd = { "elixir-ls" },
     -- }}}
   }
 )
 
 lazy_setup(
-  {"ps1"}, "powershell_es", {
+  { "ps1" }, "powershell_es", {
     -- boilerplate {{{
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
     on_attach = lsp_attach,
     capabilities = Capabilities, -- }}}
-    settings = { -- {{{
+    settings = {                 -- {{{
     },
 
     bundle_path = "~/.powershell_es",
@@ -588,7 +588,7 @@ lazy_setup(
 )
 
 lazy_setup(
-  {"arduino"}, "arduino_language_server", {
+  { "arduino" }, "arduino_language_server", {
     -- boilerplate {{{
     preselectSupport = false,
     preselect = false,
@@ -603,7 +603,7 @@ lazy_setup(
       "0",
       -- gives nothing
       -- "-skip-libraries-discovery-on-rebuild",
-    }, --  }}}
+    },           --  }}}
     settings = { -- {{{
     },
 
