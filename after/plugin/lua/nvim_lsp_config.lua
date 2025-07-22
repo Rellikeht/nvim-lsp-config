@@ -59,6 +59,12 @@ end
 
 -- }}}
 
+-- settings {{{
+
+local python_line_length = 76
+
+--  }}}
+
 -- command {{{
 
 vim.api.nvim_create_user_command(
@@ -77,7 +83,6 @@ local servers = { -- {{{
     -- :(
     -- "pylyzer",
     -- TODO check
-    "ruff",
   },
   [{
     "ocaml",
@@ -248,26 +253,24 @@ lazy_setup(
           jedi_completion = {
             --
             fuzzy = true,
-            eager = true,
+            eager = false,
             include_funciton_objects = true,
+            include_class_objects = true,
+            resolve_at_most = 100,
           },
           pylsp_mypy = {
             enabled = true,
             live_mode = false,
-            dmypy = false,
+            dmypy = true,
+            follow_imports = "silent" -- "normal" ?
           },
-          pylint = { enabled = false, executable = "pylint" },
-          pyls_isort = {
-            -- import sorting
+          pylint = {
             enabled = true,
           },
-          pycodestyle = { maxLineLength = 78 },
+          pyls_isort = { enabled = true, },
+          black = { enabled = true, maxLineLength = python_line_length },
+          pycodestyle = { line_length = python_line_length },
           rope_autoimport = { enabled = true, eager = true },
-          ruff = {
-            enabled = true,
-            formatEnabled = true,
-            unsafeFixes = true,
-          },
         },
       },
 
@@ -275,6 +278,24 @@ lazy_setup(
     }, -- }}}
   }
 )
+
+lazy_setup(
+  { "python" }, "ruff", {
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities,
+    -- }}}
+    init_options = {
+      settings = { -- {{{
+        lineLength = python_line_length,
+      },         -- }}}
+    }
+  }
+)
+
 
 lazy_setup(
   { "nix" }, "nil_ls", {
