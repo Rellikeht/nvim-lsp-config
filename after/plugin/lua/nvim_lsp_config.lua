@@ -80,9 +80,11 @@ vim.api.nvim_create_user_command(
 local servers = { -- {{{
   -- must have
   [{ "python" }] = {
+    "pyright",
+    "ty", -- TODO check
     -- :(
     -- "pylyzer",
-    -- TODO check
+    -- TODO check, use only for completion
   },
   [{
     "ocaml",
@@ -295,7 +297,6 @@ lazy_setup(
     }
   }
 )
-
 
 lazy_setup(
   { "nix" }, "nil_ls", {
