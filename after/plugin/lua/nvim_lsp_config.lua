@@ -80,11 +80,10 @@ vim.api.nvim_create_user_command(
 local servers = { -- {{{
   -- must have
   [{ "python" }] = {
-    "pyright",
-    "ty", -- TODO check
+    "ty",
     -- :(
     -- "pylyzer",
-    -- TODO check, use only for completion
+    -- TODO use only for completion
   },
   [{
     "ocaml",
@@ -277,6 +276,53 @@ lazy_setup(
       },
 
       flags = { debounce_text_changes = 100 },
+    }, -- }}}
+  }
+)
+
+lazy_setup(
+  { "python" }, "pyright", {
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities,
+    -- }}}
+    settings = { -- {{{
+      pyright = {
+        analysis = {
+          typeCheckingMode = "standard",
+        },
+      },
+    }, -- }}}
+  }
+)
+
+lazy_setup(
+  { "python" }, "basedpyright", {
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities,
+    -- }}}
+    settings = { -- {{{
+      basedpyright = {
+        analysis = {
+          typeCheckingMode = "recommended",
+          inlayHints = {
+            variableTypes = false,
+            callArgumentNames = false,
+            functionReturnTypes = false,
+          },
+          useTypingExtensions = true,
+          strictListInference = true,
+          strictSetInference = true,
+          strictDictInference = true,
+        },
+      },
     }, -- }}}
   }
 )
