@@ -312,15 +312,21 @@ lazy_setup(
       basedpyright = {
         analysis = {
           typeCheckingMode = "recommended",
+          useTypingExtensions = true,
+          strictListInference = true,
+          strictSetInference = true,
+          strictDictInference = true,
           inlayHints = {
             variableTypes = false,
             callArgumentNames = false,
             functionReturnTypes = false,
           },
-          useTypingExtensions = true,
-          strictListInference = true,
-          strictSetInference = true,
-          strictDictInference = true,
+          diagnosticSeverityOverrides = {
+            reportUnknownMemberType = false,
+            reportUnknownArgumentType = false,
+            reportUnknownVariableType = "information",
+            reportMissingTypeStubs = "information",
+          },
         },
       },
     }, -- }}}
