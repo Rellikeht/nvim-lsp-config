@@ -311,11 +311,13 @@ lazy_setup(
     settings = { -- {{{
       basedpyright = {
         analysis = {
-          typeCheckingMode = "recommended",
+          typeCheckingMode =
+              (vim.env.BASEDPYRIGHT_MODE or "recommended"),
           useTypingExtensions = true,
           strictListInference = true,
           strictSetInference = true,
           strictDictInference = true,
+          enableTypeIgnoreComments = true,
           inlayHints = {
             variableTypes = false,
             callArgumentNames = false,
@@ -336,6 +338,7 @@ lazy_setup(
             reportImplicitOverride = "information",
             reportExplicitAny = false,
             reportAny = false,
+            reportImplicitRelativeImport = "warning",
           },
         },
       },
@@ -355,7 +358,7 @@ lazy_setup(
     init_options = {
       settings = { -- {{{
         lineLength = python_line_length,
-      },         -- }}}
+      },           -- }}}
     }
   }
 )
