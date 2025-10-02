@@ -293,8 +293,8 @@ lazy_setup(
       pyright = {
         analysis = {
           typeCheckingMode = "standard",
+          reportUnnecessaryTypeIgnoreComment = "warning",
         },
-        reportUnnecessaryTypeIgnoreComment = "warning",
       },
     }, -- }}}
   }
