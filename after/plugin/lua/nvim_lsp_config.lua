@@ -294,6 +294,7 @@ lazy_setup(
         analysis = {
           typeCheckingMode = "standard",
         },
+        reportUnnecessaryTypeIgnoreComment = "warning",
       },
     }, -- }}}
   }
@@ -338,7 +339,8 @@ lazy_setup(
             reportImplicitOverride = "information",
             reportExplicitAny = false,
             reportAny = false,
-            reportImplicitRelativeImport = "warning",
+            reportImplicitRelativeImport = "information",
+            reportDeprecated = "error",
           },
         },
       },
