@@ -468,7 +468,7 @@ lazy_setup(
       settings = { telemetry = { enable = false } }, -- }}}
     }
     if vim.fn.executable("julials") == 1 then
-      settings.cmd = { "julials" }
+      settings.settings.cmd = { "julials" }
     end
     return settings
   end
