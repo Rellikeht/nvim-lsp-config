@@ -104,7 +104,7 @@ M = {
 --  }}}
 
 if vim.g.lsp_autosetup ~= nil and not vim.g.lsp_autosetup then
-  return
+  return M
 end
 
 local servers = { -- {{{
@@ -755,3 +755,5 @@ lazy_setup(
 -- })
 
 -- }}}
+
+return M
