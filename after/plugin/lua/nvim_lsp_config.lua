@@ -110,19 +110,19 @@ local servers = { -- {{{
     "typescript",
     "typescriptreact",
     "typescript.jsx",
-  }] = { "ts_ls", "denols" },
+  }] = { "ts_ls", "denols" }, -- :(
+  [{ "erlang" }] = "erlangls",
+  [{ "kotlin" }] = "kotlin_language_server",
+  [{ "autohotkey" }] = "autohotkey_lsp",
 
   -- just in case
-  [{ "erlang" }] = "erlangls",
   [{ "odin" }] = "ols",
   [{ "nickel", "ncl" }] = "nickel_ls",
   [{ "scala" }] = "metals",
-  [{ "kotlin" }] = "kotlin_language_server",
   [{ "ada" }] = "ada_ls",
   [{ "roc" }] = "roc_ls",
   [{ "r", "rmd", "quarto" }] = "r_language_server",
   [{ "teal" }] = "teal_ls",
-  [{ "autohotkey" }] = "autohotkey_lsp",
   [{ "yaml.ansible" }] = "ansiblels",
   [{ "dhall" }] = "dhall_lsp_server",
   [{ "star", "bzl", "BUILD.bazel" }] = "starlark_rust",
@@ -136,6 +136,10 @@ local servers = { -- {{{
   },
   [{ "gd", "gdscript", "gdscript3" }] = "gdscript",
   [{ "gdshader", "gdshaderinc" }] = "gdshader_lsp",
+  [{ "xml", "xsd", "xsl", "xslt", "svg" }] = "lemmnix",
+  [{ "luau" }] = "luau_lsp",
+  [{ "nelua" }] = "nelua_lsp",
+  [{ "lean" }] = "leanls",
 
   -- test and select (or leave multiple)
   [{ "solidity" }] = { "solang", "solc", "solidity_ls" },
