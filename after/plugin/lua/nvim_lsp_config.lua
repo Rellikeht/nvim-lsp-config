@@ -144,6 +144,8 @@ local servers = { -- {{{
   [{ "luau" }] = "luau_lsp",
   [{ "nelua" }] = "nelua_lsp",
   [{ "lean" }] = "leanls",
+  [{ "dart" }] = "dartls",
+  [{ "yaml", "yaml.docker-compose", "yaml.gitlab" } ] = "yamlls",
 
   -- test and select (or leave multiple)
   [{ "solidity" }] = { "solang", "solc", "solidity_ls" },
