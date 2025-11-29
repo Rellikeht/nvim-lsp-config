@@ -32,10 +32,16 @@ local function diag_win_preview(bufnr, var_name)
     return
   end
   vim.api.nvim_set_current_win(win_id)
-  vim.cmd("silent! pclose")
-  vim.cmd("silent! pedit")
+  print(vim.cmd("pbuffer %"))
   vim.api.nvim_win_close(win_id, true)
   vim.api.nvim_buf_set_var(bufnr, var_name, nil)
+  -- TODO clear highlight on close of preview window and if possible
+  -- check if there was previous highlight to leave alone
+  -- clears only current line
+  -- local cur_line = vim.api.nvim_win_get_cursor(0)[1]
+  -- vim.api.nvim_buf_clear_namespace(0, 0, cur_line-1, cur_line)
+  -- clears everything
+  vim.api.nvim_buf_clear_namespace(0, 0, 0, -1)
 end
 
 M = {
