@@ -1,6 +1,7 @@
 -- TODO document all this
 
-local hover_id_name = "lsp_config_hover_id"
+local hover_id_var = "lsp_config_hover_win_id"
+local hover_symbol_var = "lsp_config_hover_var"
 
 -- inspired by
 -- https://github.com/neovim/neovim/discussions/35953#discussioncomment-14544580
@@ -14,7 +15,7 @@ local float_wrapper = function(opener)
     if opts.parent_bufnr ~= nil then
       vim.api.nvim_buf_set_var(
         opts.parent_bufnr,
-        hover_id_name,
+        hover_id_var,
         win_id
       )
     end
@@ -25,18 +26,60 @@ local float_wrapper = function(opener)
   end
 end
 
+local function hover_toggle(opts, bufnr)
+  local result, hover_win_id = pcall(
+    vim.api.nvim_buf_get_var,
+    bufnr,
+    hover_id_var
+  )
+  if result and hover_win_id and
+      vim.api.nvim_win_is_valid(hover_win_id) then
+    vim.api.nvim_win_close(hover_win_id, true)
+    vim.api.nvim_buf_set_var(bufnr, hover_id_var, nil)
+    return
+  end
+  opts.parent_bufnr = bufnr
+  vim.lsp.buf.hover(opts)
+end
+
+local function insert_hover(opts, bufnr)
+  local cword = vim.fn.matchstr(
+    vim.fn.getline("."),
+    "\\k*\\%" .. vim.fn.col(".") .. "c\\k*"
+  )
+  local result, hover_word = pcall(
+    vim.api.nvim_buf_get_var,
+    bufnr,
+    hover_symbol_var
+  )
+  vim.api.nvim_buf_set_var(
+    bufnr,
+    hover_symbol_var,
+    cword
+  )
+  if not result or not hover_word or hover_word == cword then
+    -- no hover insert initiated or initiated on other word
+    hover_toggle(opts, bufnr)
+  else
+    -- insert hover on other word, needs to replace
+    vim.api.nvim_buf_set_var(bufnr, hover_id_var, nil)
+    opts.parent_bufnr = bufnr
+    vim.lsp.buf.hover(opts)
+  end
+end
+
 local function diag_win_preview(bufnr)
-  local result, win_id = pcall(vim.api.nvim_buf_get_var, bufnr, hover_id_name)
+  local result, win_id = pcall(vim.api.nvim_buf_get_var, bufnr, hover_id_var)
   if not result or not win_id then
     return
   elseif not vim.api.nvim_win_is_valid(win_id) then
-    vim.api.nvim_buf_set_var(bufnr, hover_id_name, nil)
+    vim.api.nvim_buf_set_var(bufnr, hover_id_var, nil)
     return
   end
   vim.api.nvim_set_current_win(win_id)
   print(vim.cmd("pbuffer %"))
   vim.api.nvim_win_close(win_id, true)
-  vim.api.nvim_buf_set_var(bufnr, hover_id_name, nil)
+  vim.api.nvim_buf_set_var(bufnr, hover_id_var, nil)
   -- TODO clear highlight on close of preview window and if possible
   -- check if there was previous highlight to leave alone
   -- clears only current line
@@ -52,21 +95,8 @@ M = {
       vim.lsp.util.open_floating_preview
     )
   end,
-  hover_toggle = function(opts, bufnr)
-    local result, hover_win_id = pcall(
-      vim.api.nvim_buf_get_var,
-      bufnr,
-      hover_id_name
-    )
-    if result and hover_win_id and
-        vim.api.nvim_win_is_valid(hover_win_id) then
-      vim.api.nvim_win_close(hover_win_id, true)
-      vim.api.nvim_buf_set_var(bufnr, hover_id_name, nil)
-      return
-    end
-    opts.parent_bufnr = bufnr
-    vim.lsp.buf.hover(opts)
-  end,
+  hover_toggle = hover_toggle,
+  insert_hover = insert_hover,
   diag_win_preview = diag_win_preview,
   buf_hover_preview = function(opts, bufnr)
     if bufnr then
