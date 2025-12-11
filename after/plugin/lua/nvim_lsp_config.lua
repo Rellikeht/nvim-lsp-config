@@ -60,10 +60,23 @@ end
 -- }}}
 
 -- settings {{{
+-- defined here because of more than one reference or logic more
+-- complicated than just an assignment
 
 local c_files = { "c", "cpp", "objc", "objcpp", "cuda" }
 local python_line_length = 76
 local nix_formatting_cmd = "alejandra"
+local latex_build_directory = "build"
+
+local texlab_formatter_line_length = vim.o.textwidth
+if texlab_formatter_line_length == 0 then
+  texlab_formatter_line_length = 80
+end
+
+local synctex_previewer = "synctex-previewer"
+if vim.fn.executable(synctex_previewer) == 0 then
+  synctex_previewer = "zathura"
+end
 
 --  }}}
 
@@ -108,7 +121,6 @@ local servers = { -- {{{
 
   -- sometimes needed
   [{ "zig", "zir" }] = "zls",
-  [{ "latex", "tex", "plaintex", "bib" }] = "texlab",
   [{
     "javascript",
     "javascriptreact",
@@ -465,6 +477,40 @@ lazy_setup(
 )
 
 lazy_setup(
+  { "latex", "tex", "plaintex", "bib" }, "texlab", {
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities,
+    offset_encoding = "utf-8",
+    -- }}}
+    settings = { -- {{{
+      texlab = {
+        diagnosticsDelay = 250,
+        formatterLineLength = texlab_formatter_line_length,
+        forwardSearch = { executable = synctex_previewer, },
+        latexFormatter = "latexindent",
+        build = {
+          onSave = false,
+          args = {
+            "-pdf",
+            "-interaction=nonstopmode",
+            "-synctex=1",
+            "-outdir=" .. latex_build_directory,
+            "%f",
+          },
+          logDirectory = latex_build_directory,
+          auxDirectory = latex_build_directory,
+          pdfDirectory = latex_build_directory,
+        },
+      },
+    }, -- }}}
+  }
+)
+
+lazy_setup(
   { "go", "gomod", "gowork", "gotmpl" }, "gopls", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -734,10 +780,8 @@ lazy_setup(
 
 -- }}}
 
--- {{{
-
+-- lspconfig.java_language_server.setup({ -- TODO {{{
 -- This has some weird problems
--- lspconfig.java_language_server.setup({
 --   cmd = {'java-language-server'},
 --   preselectSupport = false,
 --   preselect = false,
@@ -745,6 +789,4 @@ lazy_setup(
 --   on_attach = lsp_attach,
 --   capabilities = Capabilities,
 --   -- settings = {}
--- })
-
--- }}}
+-- }) -- }}}
