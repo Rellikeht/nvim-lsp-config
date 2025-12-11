@@ -1,5 +1,3 @@
--- TODO document all this
-
 local hover_id_var = "lsp_config_hover_win_id"
 local hover_symbol_var = "lsp_config_hover_var"
 
