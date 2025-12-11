@@ -61,7 +61,9 @@ end
 
 -- settings {{{
 
+local c_files = { "c", "cpp", "objc", "objcpp", "cuda" }
 local python_line_length = 76
+local nix_formatting_cmd = "alejandra"
 
 --  }}}
 
@@ -145,7 +147,7 @@ local servers = { -- {{{
   [{ "nelua" }] = "nelua_lsp",
   [{ "lean" }] = "leanls",
   [{ "dart" }] = "dartls",
-  [{ "yaml", "yaml.docker-compose", "yaml.gitlab" } ] = "yamlls",
+  [{ "yaml", "yaml.docker-compose", "yaml.gitlab" }] = "yamlls",
 
   -- test and select (or leave multiple)
   [{ "solidity" }] = { "solang", "solc", "solidity_ls" },
@@ -385,7 +387,7 @@ lazy_setup(
     capabilities = Capabilities, -- }}}
     settings = {                 -- {{{
       ["nil"] = {
-        formatting = { command = { "alejandra" } },
+        formatting = { command = { nix_formatting_cmd } },
         diagnostics = {
           ignored = {
             -- "unused_rec",
@@ -400,6 +402,25 @@ lazy_setup(
             autoArchive = false,
             autoEvalInputs = false,
           },
+        },
+      },
+    }, -- }}}
+  }
+)
+
+lazy_setup(
+  { "nix" }, "nixd", {
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities, -- }}}
+    settings = {                 -- {{{
+      nixd = {
+        formatting = { command = { nix_formatting_cmd } },
+        nixpkgs = {
+          expr = "import <nixpkgs> { }",
         },
       },
     }, -- }}}
@@ -425,8 +446,6 @@ lazy_setup(
   }
 )
 
--- fucking almost useless shit
--- that crashes on every fucking input
 lazy_setup(
   { "typst" }, "tinymist", {
     -- boilerplate {{{
@@ -516,8 +535,6 @@ lazy_setup(
     }, -- }}}
   }
 )
-
-local c_files = { "c", "cpp", "objc", "objcpp", "cuda" }
 
 lazy_setup(
   c_files, "clangd", {
