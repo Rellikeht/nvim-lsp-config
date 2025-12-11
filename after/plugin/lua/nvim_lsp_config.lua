@@ -64,6 +64,26 @@ end
 -- complicated than just an assignment
 
 local c_files = { "c", "cpp", "objc", "objcpp", "cuda" }
+local ltex_plus_files = { "bib",
+  "context",
+  "gitcommit",
+  "html",
+  "markdown",
+  "org",
+  "pandoc",
+  "plaintex",
+  "quarto",
+  "mail",
+  "mdx",
+  "rmd",
+  "rnoweb",
+  "rst",
+  "tex",
+  "latex",
+  "typst",
+  "xhtml",
+}
+
 local python_line_length = 76
 local nix_formatting_cmd = "alejandra"
 local latex_build_directory = "build"
@@ -160,6 +180,7 @@ local servers = { -- {{{
   [{ "lean" }] = "leanls",
   [{ "dart" }] = "dartls",
   [{ "yaml", "yaml.docker-compose", "yaml.gitlab" }] = "yamlls",
+  [{ "tex", "plaintex", "context" }] = "digestif",
 
   -- test and select (or leave multiple)
   [{ "solidity" }] = { "solang", "solc", "solidity_ls" },
@@ -505,6 +526,26 @@ lazy_setup(
           auxDirectory = latex_build_directory,
           pdfDirectory = latex_build_directory,
         },
+      },
+    }, -- }}}
+  }
+)
+
+lazy_setup(
+  ltex_plus_files, "ltex_plus", {
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities,
+    offset_encoding = "utf-8",
+    -- }}}
+    settings = { -- {{{
+      ltex = {
+        -- TODO language
+        -- TODO more settings
+        enabled = ltex_plus_files,
       },
     }, -- }}}
   }
