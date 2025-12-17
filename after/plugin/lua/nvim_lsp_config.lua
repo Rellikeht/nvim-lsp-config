@@ -4,16 +4,7 @@ end
 
 -- helpers {{{
 
-local function reedit()
-  if vim.b.readonly then
-    vim.cmd.view()
-  else
-    vim.cmd.edit()
-  end
-end
-
----@diagnostic disable: unused-local
-local lspconfig_util = require("lspconfig.util")
+-- local lspconfig_util = require("lspconfig").util
 local lazy_utils = require("lazy_utils")
 
 local default_server_setup = {
