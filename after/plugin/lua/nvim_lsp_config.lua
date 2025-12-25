@@ -4,7 +4,7 @@ end
 
 -- helpers {{{
 
--- local lspconfig_util = require("lspconfig").util
+local lspconfig = require("lspconfig")
 local lazy_utils = require("lazy_utils")
 
 local default_server_setup = {
@@ -22,13 +22,11 @@ if vim.fn.has("nvim-0.11.2") == 1 then
     vim.lsp.config(name, config)
   end
 else
-  local lspconfig = require("lspconfig")
   lsp_config = function(name, config)
     lspconfig[name].setup(config)
   end
 end
 
-local server_augroup_id = 0
 local function lazy_setup(filetypes, name, loader, args)
   lazy_utils.load_on_filetypes(
     filetypes, function()
@@ -139,7 +137,7 @@ local servers = { -- {{{
     "typescript",
     "typescriptreact",
     "typescript.jsx",
-  }] = { "ts_ls", "denols" }, -- :(
+  }] = { "ts_ls", "eslint" }, -- :(
   [{ "erlang" }] = "erlangls",
   [{ "kotlin" }] = "kotlin_language_server",
   [{ "autohotkey" }] = "autohotkey_lsp",
@@ -776,6 +774,55 @@ lazy_setup(
 
     -- disabledFeatures = { "semanticTokens" },
     autostart = true,
+    -- }}}
+  }
+)
+
+lazy_setup(
+  { --  {{{
+    "javascript",
+    "javascriptreact",
+    "javascript.jsx",
+    "typescript",
+    "typescriptreact",
+    "typescript.jsx",
+  }, --  }}}
+  "denols", {
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = lsp_attach,
+    capabilities = Capabilities,
+    root_dir = function(bufnr, on_dir)
+      local result = lspconfig.util.root_pattern("deno.json", "deno.jsonc")(
+        vim.fn.getbufinfo(bufnr).name
+      )
+      -- TODO start when ts_ls is not available
+      -- I don't need this anyway so it will probably stay like this
+      if not result then
+        return
+      end
+      on_dir(result)
+    end,
+    -- }}}
+
+    init_options = {             --  {{{
+      lint = true,
+      unstable = true,
+      suggest = {
+        imports = {
+          hosts = {
+            ["https://deno.land"] = true,
+            ["https://cdn.nest.land"] = true,
+            ["https://crux.land"] = true,
+          },
+        },
+      },
+    },           --  }}}
+
+    settings = { -- {{{
+    },
     -- }}}
   }
 )
