@@ -5,7 +5,8 @@ Basically my own lsp zero with lazy loading.
 
 ## Dependencies
 
-- neovim/nvim-lspconfig - to make this work in nvim > 0.11.2
+- neovim/nvim-lspconfig - to make this work in nvim < 0.11.2 and to 
+  provide utils
 - Rellikeht/lazy-utils - used for lazy loading configurations
   with filetype autocommand
 - mfussenegger/nvim-jdtls - to use jdtls setup

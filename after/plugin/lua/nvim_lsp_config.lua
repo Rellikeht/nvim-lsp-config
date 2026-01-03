@@ -16,34 +16,42 @@ local default_server_setup = {
   settings = { telemetry = { enable = false } },
 }
 
-local lsp_config
+local lsp_config, lsp_setup
 if vim.fn.has("nvim-0.11.2") == 1 then
   lsp_config = function(name, config)
     vim.lsp.config(name, config)
+  end
+  lsp_setup = function(_, name, loader, args)
+    local success, setup = pcall(loader, args)
+    if success then
+      lsp_config(name, setup)
+    else
+      lsp_config(name, loader)
+    end
   end
 else
   lsp_config = function(name, config)
     lspconfig[name].setup(config)
   end
-end
 
-local function lazy_setup(filetypes, name, loader, args)
-  lazy_utils.load_on_filetypes(
-    filetypes, function()
-      local success, setup = pcall(loader, args)
-      if success then
-        lsp_config(name, setup)
-      else
-        lsp_config(name, loader)
+  lsp_setup = function(filetypes, name, loader, args)
+    lazy_utils.load_on_filetypes(
+      filetypes, function()
+        local success, setup = pcall(loader, args)
+        if success then
+          lsp_config(name, setup)
+        else
+          lsp_config(name, loader)
+        end
+
+        -- all because shit won't start on it's own when
+        -- it's needed and will start when it isn't
+        lazy_utils.load_on_cursor(function()
+          vim.cmd.LspStart(name)
+        end)
       end
-
-      -- all because shit won't start on it's own when
-      -- it's needed and will start when it isn't
-      lazy_utils.load_on_cursor(function()
-        vim.cmd.LspStart(name)
-      end)
-    end
-  )
+    )
+  end
 end
 
 -- }}}
@@ -187,22 +195,22 @@ local servers = { -- {{{
 for ftypes, names in pairs(servers) do
   if type(names) == "table" then
     for _, name in pairs(names) do
-      lazy_setup(ftypes, name, default_server_setup)
+      lsp_setup(ftypes, name, default_server_setup)
     end
   else
-    lazy_setup(ftypes, names, default_server_setup)
+    lsp_setup(ftypes, names, default_server_setup)
   end
 end
 
 -- TODO is this optimal way to do this
 if vim.fn.executable("ast-grep") == 1 then
-  lazy_setup("*", "ast_grep", default_server_setup)
+  lsp_setup("*", "ast_grep", default_server_setup)
   -- lsp_config("ast_grep", default_server_setup)
 end
 
 -- }}}
 
-lazy_setup(
+lsp_setup(
   { "lua" }, "lua_ls", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -273,7 +281,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   { "python" }, "pylsp", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -314,7 +322,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   { "python" }, "pyright", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -334,7 +342,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   { "python" }, "basedpyright", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -382,7 +390,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   { "python" }, "ruff", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -399,7 +407,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   { "nix" }, "nil_ls", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -430,7 +438,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   { "nix" }, "nixd", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -449,7 +457,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   { "nim" }, "nim_langserver", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -468,7 +476,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   { "typst" }, "tinymist", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -486,7 +494,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   { "latex", "tex", "plaintex", "bib" }, "texlab", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -520,7 +528,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   ltex_plus_files, "ltex_plus", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -540,7 +548,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   { "go", "gomod", "gowork", "gotmpl" }, "gopls", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -561,7 +569,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   { "julia" }, "julials", function()
     local settings = {
       -- boilerplate {{{
@@ -583,7 +591,7 @@ lazy_setup(
 -- to current dir to make this shit work
 
 -- No idea if all of that is really needed
-lazy_setup(
+lsp_setup(
   { "rust" }, "rust_analyzer", {
     -- boilerplate {{{
     on_attach = lsp_attach,
@@ -612,7 +620,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   c_files, "clangd", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -715,7 +723,7 @@ lazy_utils.load_on_filetypes(
   end
 )
 
-lazy_setup(
+lsp_setup(
   { "elixir" }, "elixirls", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -736,7 +744,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   { "ps1" }, "powershell_es", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -752,7 +760,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   { "arduino" }, "arduino_language_server", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -778,7 +786,7 @@ lazy_setup(
   }
 )
 
-lazy_setup(
+lsp_setup(
   { --  {{{
     "javascript",
     "javascriptreact",
@@ -807,7 +815,7 @@ lazy_setup(
     end,
     -- }}}
 
-    init_options = {             --  {{{
+    init_options = { --  {{{
       lint = true,
       unstable = true,
       suggest = {
@@ -826,38 +834,6 @@ lazy_setup(
     -- }}}
   }
 )
-
--- {{{
-
--- lspconfig.pylyzer.setup(
---   {
---     cmd = {"pylyzer", "--server"},
-
---     --   root_dir = function(fname)
---     --     local root_files = {
---     --       "setup.py",
---     --       "tox.ini",
---     --       "requirements.txt",
---     --       "Pipfile",
---     --       "pyproject.toml"
---     --     }
---     --     return lspconfig_util.root_pattern(unpack(root_files))(fname) or
---     --              lspconfig_util.find_git_ancestor(fname)
---     --   end,
-
---     single_file_support = true,
---     settings = {
---       python = {
---         diagnostics = true,
---         inlayHints = true,
---         smartCompletion = true,
---         checkOnType = true,
---       },
---     },
---   }
--- )
-
--- }}}
 
 -- lspconfig.java_language_server.setup({ -- TODO {{{
 -- This has some weird problems
