@@ -28,6 +28,11 @@ if vim.fn.has("nvim-0.11.2") == 1 then
     else
       lsp_config(name, loader)
     end
+    -- all because shit won't start on it's own when
+    -- it's needed and will start when it isn't
+    lazy_utils.load_on_cursor(function()
+      vim.cmd.LspStart(name)
+    end)
   end
 else
   lsp_config = function(name, config)
