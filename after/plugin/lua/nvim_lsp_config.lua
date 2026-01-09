@@ -361,6 +361,7 @@ lsp_setup(
         analysis = {
           typeCheckingMode =
               (vim.env.BASEDPYRIGHT_MODE or "recommended"),
+          fileEnumerationTimeout = 20,
           useTypingExtensions = true,
           strictListInference = true,
           strictSetInference = true,
@@ -374,9 +375,9 @@ lsp_setup(
           diagnosticSeverityOverrides = {
             reportUnknownMemberType = false,
             reportUnknownArgumentType = false,
-            reportUnknownVariableType = "information",
+            reportUnknownVariableType = false, -- "information",
             reportUnknownParameterType = false,
-            -- reportMissingParameterType = "information",
+            reportMissingParameterType = false,
             reportUnannotatedClassAttribute = "information",
             reportMissingTypeArgument = "warning",
             reportCallInDefaultInitializer = false,
@@ -388,6 +389,7 @@ lsp_setup(
             reportAny = false,
             reportImplicitRelativeImport = "information",
             reportDeprecated = "error",
+            reportUnusedCallResult = false,
           },
         },
       },
