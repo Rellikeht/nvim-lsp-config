@@ -189,7 +189,7 @@ local servers = { -- {{{
   [{ "vhdl", "vhd" }] = { "vhdl_ls", "ghdl_ls" },
   [{ "verilog", "systemverilog" }] = {
     "svls",
-    "veridain",
+    "veridian",
     "verible",
   },
 
@@ -356,9 +356,12 @@ lsp_setup(
     on_attach = lsp_attach,
     capabilities = Capabilities,
     -- }}}
+
     settings = { -- {{{
       basedpyright = {
         analysis = {
+          autoSearchPaths = true,
+          diagnosticMode = "openFilesOnly",
           typeCheckingMode =
               (vim.env.BASEDPYRIGHT_MODE or "recommended"),
           fileEnumerationTimeout = 20,
