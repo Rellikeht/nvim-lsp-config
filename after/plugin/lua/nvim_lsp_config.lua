@@ -176,7 +176,7 @@ local servers = { -- {{{
   },
   [{ "gd", "gdscript", "gdscript3" }] = "gdscript",
   [{ "gdshader", "gdshaderinc" }] = "gdshader_lsp",
-  [{ "xml", "xsd", "xsl", "xslt", "svg" }] = "lemmnix",
+  [{ "xml", "xsd", "xsl", "xslt", "svg" }] = "lemminx",
   [{ "luau" }] = "luau_lsp",
   [{ "nelua" }] = "nelua_lsp",
   [{ "lean" }] = "leanls",
