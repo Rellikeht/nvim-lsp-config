@@ -135,14 +135,16 @@ local servers = { -- {{{
     "dune",
     "opam",
   }] = "ocamllsp",
+  [{ "sh", "bash", "zsh" }] = "bashls",
+
+  -- sometimes nice
+  [{ "zig", "zir" }] = "zls",
   [{ "haskell", "cabal" }] = "hls",
+
+  -- sometimes needed
   [{ "html" }] = "superhtml",
   [{ "html" }] = "html",
   [{ "css", "scss", "less" }] = "cssls",
-  [{ "sh", "bash", "zsh" }] = "bashls",
-
-  -- sometimes needed
-  [{ "zig", "zir" }] = "zls",
   [{
     "javascript",
     "javascriptreact",
@@ -152,8 +154,26 @@ local servers = { -- {{{
     "typescript.jsx",
   }] = { "ts_ls", "eslint" }, -- :(
   [{ "erlang" }] = "erlangls",
-  [{ "kotlin" }] = "kotlin_language_server",
-  [{ "autohotkey" }] = "autohotkey_lsp",
+  [{ "groovy", "Jenkinsfile" }] = "groovyls",
+  [{
+    "Dockerfile",
+    "docker-compose.yaml",
+    "docker-compose.yml",
+    "compose.yaml",
+    "compose.yml",
+    "docker-bake.json",
+    "docker-bake.hcl",
+    "docker-bake.override.json",
+    "docker-bake.override.hcl",
+  }
+  ] = "docker_language_server",
+  [{ "Dockerfile" }] = "dockerls",
+  [{
+    "docker-compose.yaml",
+    "docker-compose.yml",
+    "compose.yaml",
+    "compose.yml",
+  }] = "docker_compose_language_service",
 
   -- just in case
   [{ "odin" }] = "ols",
@@ -183,6 +203,8 @@ local servers = { -- {{{
   [{ "dart" }] = "dartls",
   [{ "yaml", "yaml.docker-compose", "yaml.gitlab" }] = "yamlls",
   [{ "tex", "plaintex", "context" }] = "digestif",
+  [{ "kotlin" }] = "kotlin_language_server",
+  [{ "autohotkey" }] = "autohotkey_lsp",
 
   -- test and select (or leave multiple)
   [{ "solidity" }] = { "solang", "solc", "solidity_ls" },
