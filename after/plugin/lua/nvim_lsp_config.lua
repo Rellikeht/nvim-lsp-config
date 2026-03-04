@@ -431,8 +431,11 @@ lsp_setup(
     on_attach = lsp_attach,
     capabilities = Capabilities,
     -- }}}
+
     init_options = {
       settings = { -- {{{
+        -- just in case
+        configurationPreference = "filesystemFirst",
         lineLength = python_line_length,
       },           -- }}}
     }
