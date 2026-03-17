@@ -153,7 +153,7 @@ local servers = { -- {{{
     "typescriptreact",
     "typescript.jsx",
   }] = { "ts_ls", "eslint" }, -- :(
-  [{ "erlang" }] = "erlangls",
+  [{ "erlang" }] = "elp",
   [{ "groovy", "Jenkinsfile" }] = "groovyls",
   [{
     "Dockerfile",
