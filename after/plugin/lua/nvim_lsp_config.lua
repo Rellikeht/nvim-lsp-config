@@ -616,7 +616,7 @@ lsp_setup(
       settings = { telemetry = { enable = false } }, -- }}}
     }
     if vim.fn.executable("julials") == 1 then
-      settings.settings.cmd = { "julials" }
+      settings.cmd = { "julials" }
     end
     return settings
   end
