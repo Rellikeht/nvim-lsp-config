@@ -7,11 +7,19 @@ end
 local lspconfig = require("lspconfig")
 local lazy_utils = require("lazy_utils")
 
+local function global_on_attach(client, bufnr)
+  local bufname = vim.api.nvim_buf_get_name(bufnr)
+  if bufname:match("^[a-zA-Z0-9]*://") then
+    -- because why have sane way of silencing stuff
+    vim.cmd("silent! lua vim.lsp.stop_client("..client.id..", true)")
+  end
+end
+
 local default_server_setup = {
   preselectSupport = false,
   preselect = false,
   single_file_support = true,
-  on_attach = lsp_attach,
+  on_attach = global_on_attach,
   capabilities = Capabilities,
   settings = { telemetry = { enable = false } },
 }
@@ -243,7 +251,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities, -- }}}
     on_init = function(client)   -- {{{
       ---@diagnostic disable: undefined-field
@@ -314,7 +322,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities,
     -- }}}
     settings = { -- {{{
@@ -355,7 +363,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities,
     -- }}}
     settings = { -- {{{
@@ -375,7 +383,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
@@ -428,16 +436,16 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
     init_options = {
       settings = { -- {{{
-        -- just in case
+        -- this makes ruff correctly read project settings
         configurationPreference = "filesystemFirst",
         lineLength = python_line_length,
-      },           -- }}}
+      }, -- }}}
     }
   }
 )
@@ -448,7 +456,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities, -- }}}
     settings = {                 -- {{{
       ["nil"] = {
@@ -479,7 +487,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities, -- }}}
     settings = {                 -- {{{
       nixd = {
@@ -498,7 +506,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities, -- }}}
     settings = {                 -- {{{
       nim = {
@@ -517,7 +525,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities,
     offset_encoding = "utf-8",
     -- }}}
@@ -535,7 +543,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities,
     offset_encoding = "utf-8",
     -- }}}
@@ -569,7 +577,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities,
     offset_encoding = "utf-8",
     -- }}}
@@ -589,7 +597,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities, -- }}}
     settings = {                 -- {{{
       gopls = {
@@ -611,7 +619,7 @@ lsp_setup(
       preselectSupport = false,
       preselect = false,
       single_file_support = true,
-      on_attach = lsp_attach,
+      on_attach = global_on_attach,
       capabilities = Capabilities,
       settings = { telemetry = { enable = false } }, -- }}}
     }
@@ -629,7 +637,7 @@ lsp_setup(
 lsp_setup(
   { "rust" }, "rust_analyzer", {
     -- boilerplate {{{
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
@@ -661,7 +669,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities, -- }}}
     cmd = {                      -- {{{
       "clangd",
@@ -764,7 +772,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities, -- }}}
     settings = {                 -- {{{
       fetchDeps = false,
@@ -785,7 +793,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities, -- }}}
     settings = {                 -- {{{
     },
@@ -801,7 +809,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities,
     -- }}}
     cmd = { --  {{{
@@ -835,7 +843,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = lsp_attach,
+    on_attach = global_on_attach,
     capabilities = Capabilities,
     root_dir = function(bufnr, on_dir)
       local result = lspconfig.util.root_pattern("deno.json", "deno.jsonc")(
@@ -876,7 +884,7 @@ lsp_setup(
 --   preselectSupport = false,
 --   preselect = false,
 --   single_file_support = true,
---   on_attach = lsp_attach,
+--   on_attach = global_on_attach,
 --   capabilities = Capabilities,
 --   -- settings = {}
 -- }) -- }}}
