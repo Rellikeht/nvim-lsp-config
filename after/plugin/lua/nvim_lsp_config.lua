@@ -11,7 +11,7 @@ local function global_on_attach(client, bufnr)
   local bufname = vim.api.nvim_buf_get_name(bufnr)
   if bufname:match("^[a-zA-Z0-9]*://") then
     -- because why have sane way of silencing stuff
-    vim.cmd("silent! lua vim.lsp.stop_client("..client.id..", true)")
+    vim.cmd("silent! lua vim.lsp.stop_client(" .. client.id .. ", true)")
   end
 end
 
@@ -36,11 +36,16 @@ if vim.fn.has("nvim-0.11.2") == 1 then
     else
       lsp_config(name, loader)
     end
-    -- all because shit won't start on it's own when
-    -- it's needed and will start when it isn't
-    lazy_utils.load_on_cursor(function()
-      vim.cmd.LspStart(name)
-    end)
+
+    if vim.fn.has("nvim-0.12") == 1 then
+      vim.cmd.lsp("enable", name)
+    else
+      -- all because shit won't start on it's own when
+      -- it's needed and will start when it isn't
+      lazy_utils.load_on_cursor(function()
+        vim.cmd.LspStart(name)
+      end)
+    end
   end
 else
   lsp_config = function(name, config)
