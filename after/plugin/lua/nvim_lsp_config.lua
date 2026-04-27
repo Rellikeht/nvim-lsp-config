@@ -372,6 +372,9 @@ lsp_setup(
     capabilities = Capabilities,
     -- }}}
     settings = { -- {{{
+      python = {
+        pythonPath = vim.fn.exepath("python"),
+      },
       pyright = {
         analysis = {
           typeCheckingMode = "standard",
@@ -393,7 +396,12 @@ lsp_setup(
     -- }}}
 
     settings = { -- {{{
+      python = {
+        pythonPath = vim.fn.exepath("python"),
+      },
+
       basedpyright = {
+        enableTypeIgnoreComments = true,
         analysis = {
           autoSearchPaths = true,
           diagnosticMode = "openFilesOnly",
@@ -404,7 +412,6 @@ lsp_setup(
           strictListInference = true,
           strictSetInference = true,
           strictDictInference = true,
-          enableTypeIgnoreComments = true,
           inlayHints = {
             variableTypes = false,
             callArgumentNames = false,
