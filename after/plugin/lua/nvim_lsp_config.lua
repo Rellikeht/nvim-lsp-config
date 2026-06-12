@@ -917,6 +917,15 @@ lsp_setup(
   }
 )
 
+lsp_config('gitlab_duo', {
+  -- this disables it completely as I don't plan to use it and it can 
+  -- get randomly enabled on `lsp enable`
+  root_dir = function(_, _)
+    return nil
+  end,
+  enabled = false
+})
+
 -- lspconfig.java_language_server.setup({ -- TODO {{{
 -- This has some weird problems
 --   cmd = {'java-language-server'},
