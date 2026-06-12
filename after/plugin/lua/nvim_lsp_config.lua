@@ -133,12 +133,7 @@ end
 
 local servers = { -- {{{
   -- must have
-  [{ "python" }] = {
-    "ty",
-    -- :(
-    -- "pylyzer",
-    -- TODO use only for completion
-  },
+  [{ "python" }] = "ty",
   [{
     "ocaml",
     "ocamlinterface",
@@ -257,8 +252,10 @@ lsp_setup(
     preselect = false,
     single_file_support = true,
     on_attach = global_on_attach,
-    capabilities = Capabilities, -- }}}
-    on_init = function(client)   -- {{{
+    capabilities = Capabilities,
+    -- }}}
+
+    on_init = function(client) -- {{{
       ---@diagnostic disable: undefined-field
       if client.workspace_folders then
         local path = client.workspace_folders[1].name
@@ -290,6 +287,7 @@ lsp_setup(
         }
       )
     end,         -- }}}
+
     settings = { -- {{{
       Lua = {
         runtime = {
@@ -330,6 +328,7 @@ lsp_setup(
     on_attach = global_on_attach,
     capabilities = Capabilities,
     -- }}}
+
     settings = { -- {{{
       pylsp = {
         plugins = {
@@ -371,6 +370,7 @@ lsp_setup(
     on_attach = global_on_attach,
     capabilities = Capabilities,
     -- }}}
+
     settings = { -- {{{
       python = {
         pythonPath = vim.fn.exepath("python"),
@@ -417,6 +417,7 @@ lsp_setup(
             callArgumentNames = false,
             functionReturnTypes = false,
           },
+
           diagnosticSeverityOverrides = {
             reportUnknownMemberType = "none",
             reportUnknownArgumentType = "none",
@@ -469,8 +470,10 @@ lsp_setup(
     preselect = false,
     single_file_support = true,
     on_attach = global_on_attach,
-    capabilities = Capabilities, -- }}}
-    settings = {                 -- {{{
+    capabilities = Capabilities,
+    -- }}}
+
+    settings = { -- {{{
       ["nil"] = {
         formatting = { command = { nix_formatting_cmd } },
         diagnostics = {
@@ -500,8 +503,10 @@ lsp_setup(
     preselect = false,
     single_file_support = true,
     on_attach = global_on_attach,
-    capabilities = Capabilities, -- }}}
-    settings = {                 -- {{{
+    capabilities = Capabilities,
+    -- }}}
+
+    settings = { -- {{{
       nixd = {
         formatting = { command = { nix_formatting_cmd } },
         nixpkgs = {
@@ -519,8 +524,10 @@ lsp_setup(
     preselect = false,
     single_file_support = true,
     on_attach = global_on_attach,
-    capabilities = Capabilities, -- }}}
-    settings = {                 -- {{{
+    capabilities = Capabilities,
+    -- }}}
+
+    settings = { -- {{{
       nim = {
         notificationVerbosity = "error",
         nimsuggestIdleTimeout = 9999999999,
@@ -541,10 +548,11 @@ lsp_setup(
     capabilities = Capabilities,
     offset_encoding = "utf-8",
     -- }}}
+
     settings = { -- {{{
-      offset_encoding = "utf-8",
       semanticTokens = "disable",
       exportPdf = "never",
+      formatterMode = "typstyle",
     }, -- }}}
   }
 )
@@ -559,6 +567,7 @@ lsp_setup(
     capabilities = Capabilities,
     offset_encoding = "utf-8",
     -- }}}
+
     settings = { -- {{{
       texlab = {
         diagnosticsDelay = 250,
@@ -593,6 +602,7 @@ lsp_setup(
     capabilities = Capabilities,
     offset_encoding = "utf-8",
     -- }}}
+
     settings = { -- {{{
       ltex = {
         -- TODO language
@@ -610,8 +620,10 @@ lsp_setup(
     preselect = false,
     single_file_support = true,
     on_attach = global_on_attach,
-    capabilities = Capabilities, -- }}}
-    settings = {                 -- {{{
+    capabilities = Capabilities,
+    -- }}}
+
+    settings = { -- {{{
       gopls = {
         completionBudget = "0",
         usePlaceholders = true,
@@ -633,7 +645,8 @@ lsp_setup(
       single_file_support = true,
       on_attach = global_on_attach,
       capabilities = Capabilities,
-      settings = { telemetry = { enable = false } }, -- }}}
+      settings = { telemetry = { enable = false } },
+      -- }}}
     }
     if vim.fn.executable("julials") == 1 then
       settings.cmd = { "julials" }
@@ -653,8 +666,10 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    capabilities = Capabilities, -- }}}
-    settings = {                 -- {{{
+    capabilities = Capabilities,
+    -- }}}
+
+    settings = { -- {{{
       ["rust-analyzer"] = {
         standalone = true,
         workspaceFolders = false,
@@ -682,8 +697,10 @@ lsp_setup(
     preselect = false,
     single_file_support = true,
     on_attach = global_on_attach,
-    capabilities = Capabilities, -- }}}
-    cmd = {                      -- {{{
+    capabilities = Capabilities,
+    -- }}}
+
+    cmd = { -- {{{
       "clangd",
       "--clang-tidy",
       "--enable-config",
@@ -693,6 +710,7 @@ lsp_setup(
       "--background-index",
       "--background-index-priority=low",
     },            -- }}}
+
     filetypes = { --  {{{
       "c",
       "cpp",
@@ -700,6 +718,7 @@ lsp_setup(
       "objcpp",
       "cuda",
     },           --  }}}
+
     settings = { -- {{{
     },           -- }}}
   }
@@ -748,6 +767,7 @@ lazy_utils.load_on_filetypes(
           -- The highlight group priority for extmark
           priority = 100,
         },               -- }}}
+
         ast = {          -- {{{
           -- These are unicode, should be available in any font
           role_icons = { -- {{{
@@ -769,6 +789,7 @@ lazy_utils.load_on_filetypes(
           }, -- }}}
           highlights = { detail = "Comment" },
         },   -- }}}
+
         -- {{{
         memory_usage = { border = "none" },
         symbol_info = { border = "none" },
@@ -785,8 +806,10 @@ lsp_setup(
     preselect = false,
     single_file_support = true,
     on_attach = global_on_attach,
-    capabilities = Capabilities, -- }}}
-    settings = {                 -- {{{
+    capabilities = Capabilities,
+    -- }}}
+
+    settings = { -- {{{
       fetchDeps = false,
       suggestSpecs = true,
       dialyzerEnabled = true,
@@ -794,6 +817,7 @@ lsp_setup(
       enableTestLenses = true,
       mixEnv = true,
     },
+
     cmd = { "elixir-ls" },
     -- }}}
   }
@@ -806,12 +830,13 @@ lsp_setup(
     preselect = false,
     single_file_support = true,
     on_attach = global_on_attach,
-    capabilities = Capabilities, -- }}}
-    settings = {                 -- {{{
-    },
+    capabilities = Capabilities,
+    -- }}}
+
+    settings = { -- {{{
+    },           -- }}}
 
     bundle_path = "~/.powershell_es",
-    -- }}}
   }
 )
 
@@ -824,6 +849,7 @@ lsp_setup(
     on_attach = global_on_attach,
     capabilities = Capabilities,
     -- }}}
+
     cmd = { --  {{{
       "arduino-language-server",
       -- "-log",
@@ -832,6 +858,7 @@ lsp_setup(
       -- gives nothing
       -- "-skip-libraries-discovery-on-rebuild",
     },           --  }}}
+
     settings = { -- {{{
     },
 
