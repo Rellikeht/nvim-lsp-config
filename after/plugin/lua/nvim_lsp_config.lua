@@ -464,6 +464,24 @@ lsp_setup(
 )
 
 lsp_setup(
+  { "python" }, "pyrefly", {
+    -- boilerplate {{{
+    preselectSupport = false,
+    preselect = false,
+    single_file_support = true,
+    on_attach = global_on_attach,
+    capabilities = Capabilities,
+    -- }}}
+
+    init_options = { -- {{{
+      pyrefly = {
+        typeCheckingMode = "default",
+      },
+    }, -- }}}
+  }
+)
+
+lsp_setup(
   { "nix" }, "nil_ls", {
     -- boilerplate {{{
     preselectSupport = false,
@@ -918,7 +936,7 @@ lsp_setup(
 )
 
 lsp_config('gitlab_duo', {
-  -- this disables it completely as I don't plan to use it and it can 
+  -- this disables it completely as I don't plan to use it and it can
   -- get randomly enabled on `lsp enable`
   root_dir = function(_, _)
     return nil
