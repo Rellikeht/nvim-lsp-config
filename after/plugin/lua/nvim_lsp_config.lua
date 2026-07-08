@@ -113,6 +113,17 @@ if vim.fn.executable(synctex_previewer) == 0 then
   synctex_previewer = "zathura"
 end
 
+CLANGD_COMMAND = { -- {{{
+  "clangd",
+  "--clang-tidy",
+  "--enable-config",
+  "--header-insertion=never",
+  "--completion-style=detailed",
+  "--pch-storage=memory",
+  "--background-index",
+  "--background-index-priority=low",
+} -- }}}
+
 --  }}}
 
 -- commands {{{
@@ -718,16 +729,7 @@ lsp_setup(
     capabilities = Capabilities,
     -- }}}
 
-    cmd = { -- {{{
-      "clangd",
-      "--clang-tidy",
-      "--enable-config",
-      "--header-insertion=never",
-      "--completion-style=detailed",
-      "--pch-storage=memory",
-      "--background-index",
-      "--background-index-priority=low",
-    },            -- }}}
+    cmd = CLANGD_COMMAND,
 
     filetypes = { --  {{{
       "c",
