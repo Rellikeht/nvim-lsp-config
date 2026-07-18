@@ -5,8 +5,8 @@ end
 -- helpers {{{
 
 local lspconfig = require("lspconfig")
-local lazy_utils = require("lazy_utils")
 
+-- just in case
 local function global_on_attach(client, bufnr)
   local bufname = vim.api.nvim_buf_get_name(bufnr)
   if bufname:match("^[a-zA-Z0-9]*://") then
@@ -24,51 +24,62 @@ local default_server_setup = {
   settings = { telemetry = { enable = false } },
 }
 
+local lazy_group_id = 0
+local function get_lazy_group_id()
+  lazy_group_id = lazy_group_id + 1
+  return vim.api.nvim_create_augroup("lsp_lazy_group"..lazy_group_id, {})
+end
+
 local lsp_config, lsp_setup
+local function config_lsp(_, name, loader, args)
+  local success, setup = pcall(loader, args)
+  if success then
+    lsp_config(name, setup)
+  else
+    lsp_config(name, loader)
+  end
+  -- why the fuck it took them so long to have fucking configuration 
+  -- loaded when needed not right away
+  -- amount of code needed to replicate this for neovim <0.12 is 
+  -- enormous and doesn't even work properly
+  -- was this some conspiracy to force people to use some lazy package 
+  -- manager shit instead of something simpler?
+  if vim.fn.has("nvim-0.12") == 1 then
+    vim.cmd.lsp("enable", name)
+  else
+    -- fucking nvim configuration, why couldn't this be so simple from 
+    -- the beginning
+    local gid = get_lazy_group_id()
+    vim.api.nvim_create_autocmd({ "CursorHold", "CursorMoved" }, {
+      pattern = "*",
+      group = gid,
+      callback = function()
+        vim.api.nvim_del_augroup_by_id(gid)
+        vim.cmd.LspStart(name)
+      end,
+    })
+  end
+end
+
 if vim.fn.has("nvim-0.11.2") == 1 then
   lsp_config = function(name, config)
     vim.lsp.config(name, config)
   end
-  lsp_setup = function(_, name, loader, args)
-    local success, setup = pcall(loader, args)
-    if success then
-      lsp_config(name, setup)
-    else
-      lsp_config(name, loader)
-    end
-
-    if vim.fn.has("nvim-0.12") == 1 then
-      vim.cmd.lsp("enable", name)
-    else
-      -- all because shit won't start on it's own when
-      -- it's needed and will start when it isn't
-      lazy_utils.load_on_cursor(function()
-        vim.cmd.LspStart(name)
-      end)
-    end
-  end
+  lsp_setup = config_lsp
 else
   lsp_config = function(name, config)
     lspconfig[name].setup(config)
   end
-
+  local gid = get_lazy_group_id()
   lsp_setup = function(filetypes, name, loader, args)
-    lazy_utils.load_on_filetypes(
-      filetypes, function()
-        local success, setup = pcall(loader, args)
-        if success then
-          lsp_config(name, setup)
-        else
-          lsp_config(name, loader)
-        end
-
-        -- all because shit won't start on it's own when
-        -- it's needed and will start when it isn't
-        lazy_utils.load_on_cursor(function()
-          vim.cmd.LspStart(name)
-        end)
-      end
-    )
+    vim.api.nvim_create_autocmd({ "FileType" }, {
+      pattern = filetypes,
+      group = gid,
+      callback = function()
+        vim.api.nvim_del_augroup_by_id(gid)
+        config_lsp(filetypes, name, loader, args)
+      end,
+    })
   end
 end
 
@@ -746,10 +757,14 @@ lsp_setup(
   }
 )
 
-lazy_utils.load_on_filetypes(
-  c_files, function()
-    require("clangd_extensions").setup(
-      {
+local loaded_clangd = false
+vim.api.nvim_create_autocmd(
+  { "FileType" }, {
+    pattern = c_files,
+    callback = function()
+      if loaded_clangd then return end
+      loaded_clangd = true
+      require("clangd_extensions").setup({
         inlay_hints = { -- {{{
           -- Options other than `highlight' and `priority' only work
           -- if `inline' is disabled
@@ -812,13 +827,11 @@ lazy_utils.load_on_filetypes(
           highlights = { detail = "Comment" },
         },   -- }}}
 
-        -- {{{
         memory_usage = { border = "none" },
         symbol_info = { border = "none" },
-        -- }}}
-      }
-    )
-  end
+      })
+    end
+  }
 )
 
 lsp_setup(
