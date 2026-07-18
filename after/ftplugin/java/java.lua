@@ -4,9 +4,9 @@ local project_name = vim.fn.fnamemodify(
 )
 
 local workspace_dir = nvim_local_dir .. "/jdtls-workspaces/" ..
-                        project_name
+    project_name
 
--- local classpath 
+-- local classpath
 
 local cmd = {
   "jdtls",
@@ -20,20 +20,20 @@ local config = {
 
   settings = {
     java = {
-      signatureHelp = {enabled = true},
+      signatureHelp = { enabled = true },
       completion = {
         favoriteStaticMembers = {},
-        importOrder = {"java", "javax", "com", "org"},
+        importOrder = { "java", "javax", "com", "org" },
       },
 
-      autobuild = {enabled = false},
-      rename = {enabled = true},
-      trace = {server = "verbose"},
+      autobuild = { enabled = false },
+      rename = { enabled = true },
+      trace = { server = "verbose" },
 
       import = {
         enabled = true,
-        gradle = {enabled = true},
-        maven = {enabled = true},
+        gradle = { enabled = true },
+        maven = { enabled = true },
         exclusions = {
           "**/node_modules/**",
           "**/.metadata/**",
@@ -43,7 +43,7 @@ local config = {
         },
       },
 
-      format = {enable = true},
+      format = { enable = true },
 
       -- configuration = {
       --  runtimes = {
@@ -63,11 +63,11 @@ local config = {
   },
   on_attach = lsp_attach,
 
-  handlers = {["language/status"] = function() end},
+  handlers = { ["language/status"] = function() end },
 
   root_dir = vim.fs.dirname(
     vim.fs.find(
-      {"gradlew", ".git", "mvnw", ".hg"}, {upward = true}
+      { "gradlew", ".git", "mvnw", ".hg" }, { upward = true }
     )[1]
   ),
 }
@@ -75,9 +75,9 @@ local config = {
 local success, jdtls = pcall(require, "jdtls")
 if success then
   local extendedClientCapabilities =
-    jdtls.extendedClientCapabilities
+      jdtls.extendedClientCapabilities
   extendedClientCapabilities.resolveAdditionalTextEditsSupport =
-    true
+      true
   config.extendedClientCapabilities = extendedClientCapabilities
   jdtls.start_or_attach(config)
 end
