@@ -27,7 +27,7 @@ local default_server_setup = {
 local lazy_group_id = 0
 local function get_lazy_group_id()
   lazy_group_id = lazy_group_id + 1
-  return vim.api.nvim_create_augroup("lsp_lazy_group"..lazy_group_id, {})
+  return vim.api.nvim_create_augroup("lsp_lazy_group" .. lazy_group_id, {})
 end
 
 local lsp_config, lsp_setup
@@ -38,16 +38,16 @@ local function config_lsp(_, name, loader, args)
   else
     lsp_config(name, loader)
   end
-  -- why the fuck it took them so long to have fucking configuration 
+  -- why the fuck it took them so long to have fucking configuration
   -- loaded when needed not right away
-  -- amount of code needed to replicate this for neovim <0.12 is 
+  -- amount of code needed to replicate this for neovim <0.12 is
   -- enormous and doesn't even work properly
-  -- was this some conspiracy to force people to use some lazy package 
+  -- was this some conspiracy to force people to use some lazy package
   -- manager shit instead of something simpler?
   if vim.fn.has("nvim-0.12") == 1 then
     vim.cmd.lsp("enable", name)
   else
-    -- fucking nvim configuration, why couldn't this be so simple from 
+    -- fucking nvim configuration, why couldn't this be so simple from
     -- the beginning
     local gid = get_lazy_group_id()
     vim.api.nvim_create_autocmd({ "CursorHold", "CursorMoved" }, {
@@ -750,10 +750,7 @@ lsp_setup(
       "objc",
       "objcpp",
       "cuda",
-    },           --  }}}
-
-    settings = { -- {{{
-    },           -- }}}
+    }, --  }}}
   }
 )
 
@@ -764,7 +761,9 @@ vim.api.nvim_create_autocmd(
     callback = function()
       if loaded_clangd then return end
       loaded_clangd = true
-      require("clangd_extensions").setup({
+      local success, extensions = pcall(require, "clangd_extensions")
+      if not success then return end
+      extensions.setup({
         inlay_hints = { -- {{{
           -- Options other than `highlight' and `priority' only work
           -- if `inline' is disabled
@@ -827,8 +826,12 @@ vim.api.nvim_create_autocmd(
           highlights = { detail = "Comment" },
         },   -- }}}
 
-        memory_usage = { border = "none" },
-        symbol_info = { border = "none" },
+        memory_usage = {
+          border = "none",
+        },
+        symbol_info = {
+          border = "none",
+        },
       })
     end
   }
