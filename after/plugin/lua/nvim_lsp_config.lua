@@ -162,12 +162,17 @@ if vim.g.lsp_cache_tags == nil or vim.g.lsp_cache_tags then
       local client = vim.lsp.get_client_by_id(id)
       if client and
           client.server_capabilities.definitionProvider then
+        tags[id] = {}
         local client_tags = tags[id]
-        client_tags = {}
+        -- TODO more intelligent cooperation with `tags` files
         LSP_TAGFUNC = function(pattern, flags)
+          -- this almost works but for some reason returns current
+          -- position instead of desired for empty `:tag`
+          -- if flags == "" then flags = "c" end
+          if flags == "" then return client_tags[pattern] or vim.NIL end
           local success, result = pcall(vim.lsp.tagfunc, pattern, flags)
           if not success or result == vim.NIL then
-            return client_tags[pattern]
+            return client_tags[pattern] or vim.NIL
           end
           client_tags[pattern] = result
           return result
