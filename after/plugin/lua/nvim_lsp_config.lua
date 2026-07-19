@@ -62,16 +62,14 @@ local function config_lsp(_, name, loader, args)
 end
 
 if vim.fn.has("nvim-0.11.2") == 1 then
-  lsp_config = function(name, config)
-    vim.lsp.config(name, config)
-  end
+  lsp_config = vim.lsp.config
   lsp_setup = config_lsp
 else
   lsp_config = function(name, config)
     lspconfig[name].setup(config)
   end
-  local gid = get_lazy_group_id()
   lsp_setup = function(filetypes, name, loader, args)
+    local gid = get_lazy_group_id()
     vim.api.nvim_create_autocmd({ "FileType" }, {
       pattern = filetypes,
       group = gid,
@@ -90,7 +88,8 @@ end
 -- complicated than just an assignment
 
 local c_files = { "c", "cpp", "objc", "objcpp", "cuda" }
-local ltex_plus_files = { "bib",
+local ltex_plus_files = {
+  "bib",
   "context",
   "gitcommit",
   "html",
