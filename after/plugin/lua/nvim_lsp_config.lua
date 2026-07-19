@@ -150,6 +150,40 @@ vim.api.nvim_create_user_command(
 
 --  }}}
 
+-- feature improvements {{{
+
+-- all of this shit because tags can't work as expected by default
+if vim.g.lsp_cache_tags == nil or vim.g.lsp_cache_tags then
+  local tags = {}
+  vim.api.nvim_create_autocmd("LspAttach", { -- {{{
+    callback = function(args)
+      local bufnr = args.buf
+      local id = args.data.client_id
+      local client = vim.lsp.get_client_by_id(id)
+      if client and
+          client.server_capabilities.definitionProvider then
+        local client_tags = tags[id]
+        client_tags = {}
+        LSP_TAGFUNC = function(pattern, flags)
+          local success, result = pcall(vim.lsp.tagfunc, pattern, flags)
+          if not success or result == vim.NIL then
+            return client_tags[pattern]
+          end
+          client_tags[pattern] = result
+          return result
+        end
+        vim.bo[bufnr].tagfunc = "v:lua.LSP_TAGFUNC"
+      end
+    end
+  }) --  }}}
+
+  vim.api.nvim_create_autocmd("LspDetach", {
+    callback = function(args) tags[args.data.client_id] = nil end
+  })
+end
+
+--  }}}
+
 if vim.g.lsp_autosetup ~= nil and not vim.g.lsp_autosetup then
   return
 end
