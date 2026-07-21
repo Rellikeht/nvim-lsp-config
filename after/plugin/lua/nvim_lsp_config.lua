@@ -154,7 +154,7 @@ vim.api.nvim_create_user_command(
 
 -- all of this shit because tags can't work as expected by default
 if vim.g.lsp_cache_tags == nil or vim.g.lsp_cache_tags then
-  local tags = {}
+  local lsp_tag_cache = {}
   vim.api.nvim_create_autocmd("LspAttach", { -- {{{
     callback = function(args)
       local bufnr = args.buf
@@ -162,19 +162,24 @@ if vim.g.lsp_cache_tags == nil or vim.g.lsp_cache_tags then
       local client = vim.lsp.get_client_by_id(id)
       if client and
           client.server_capabilities.definitionProvider then
-        tags[id] = {}
-        local client_tags = tags[id]
+        if not lsp_tag_cache[id] then
+          lsp_tag_cache[id] = {}
+        end
         -- TODO more intelligent cooperation with `tags` files
         LSP_TAGFUNC = function(pattern, flags)
           -- this almost works but for some reason returns current
           -- position instead of desired for empty `:tag`
           -- if flags == "" then flags = "c" end
-          if flags == "" then return client_tags[pattern] or vim.NIL end
+          if flags == "" then return lsp_tag_cache[id][pattern] or vim.NIL end
           local success, result = pcall(vim.lsp.tagfunc, pattern, flags)
           if not success or result == vim.NIL then
-            return client_tags[pattern] or vim.NIL
+            if lsp_tag_cache[id][pattern] or
+                lsp_tag_cache[id][pattern] ~= vim.NIL then
+              return lsp_tag_cache[id][pattern]
+            end
+            return vim.NIL
           end
-          client_tags[pattern] = result
+          lsp_tag_cache[id][pattern] = result
           return result
         end
         vim.bo[bufnr].tagfunc = "v:lua.LSP_TAGFUNC"
@@ -183,7 +188,7 @@ if vim.g.lsp_cache_tags == nil or vim.g.lsp_cache_tags then
   }) --  }}}
 
   vim.api.nvim_create_autocmd("LspDetach", {
-    callback = function(args) tags[args.data.client_id] = nil end
+    callback = function(args) lsp_tag_cache[args.data.client_id] = nil end
   })
 end
 
