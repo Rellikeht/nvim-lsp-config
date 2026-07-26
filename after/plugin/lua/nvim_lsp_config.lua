@@ -159,9 +159,9 @@ if vim.g.lsp_cache_tags == nil or vim.g.lsp_cache_tags then
   LSP_TAG_CACHE = {}
   vim.api.nvim_create_autocmd("LspAttach", { -- {{{
     callback = function(args)
-      local client = vim.lsp.get_client_by_id(args.data.client_id)
-      if not client or not
-          client.server_capabilities.definitionProvider then
+      local id = args.data.client_id
+      local client = vim.lsp.get_client_by_id(id)
+      if not client or not client.server_capabilities.definitionProvider then
         return
       end
       if not LSP_TAG_CACHE[client.name] then
@@ -171,16 +171,18 @@ if vim.g.lsp_cache_tags == nil or vim.g.lsp_cache_tags then
         -- this almost works but for some reason returns current
         -- position instead of desired
         -- if flags == "" then flags = "c" end
-        local tags = vim.fn.gettagstack()
-        if flags == "" then
-          return LSP_TAG_CACHE[client.name][tags.curidx] or vim.NIL
+        local idx = vim.fn.gettagstack().curidx
+        -- waiting for response of disconnected client is noticeably 
+        -- long, so don't even try in such case
+        if vim.lsp.get_client_by_id(id) == nil or flags == "" then
+          return LSP_TAG_CACHE[client.name][idx] or vim.NIL
         end
         local success, result = pcall(vim.lsp.tagfunc, pattern, flags)
         if success and result ~= vim.NIL then
           if #result > 1 then
-            LSP_TAG_CACHE[client.name][tags.curidx] = { result[1] }
+            LSP_TAG_CACHE[client.name][idx] = { result[1] }
           else
-            LSP_TAG_CACHE[client.name][tags.curidx] = result
+            LSP_TAG_CACHE[client.name][idx] = result
           end
         end
         return result
@@ -188,7 +190,6 @@ if vim.g.lsp_cache_tags == nil or vim.g.lsp_cache_tags then
       vim.bo[args.buf].tagfunc = "v:lua.LSP_TAGFUNC"
     end
   }) --  }}}
-
   -- TODO proper cache cleaning maybe (might be undoable)
 end
 
