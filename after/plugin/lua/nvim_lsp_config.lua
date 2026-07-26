@@ -378,6 +378,14 @@ lsp_setup(
           defaultConfig = {
             indent_style = "space",
             indent_size = 2,
+            trailing_table_separator = "smart",
+            align_call_args = true,
+            align_function_params = true,
+            -- this aligns comments for some reason
+            align_continuous_assign_statement = true,
+            align_continuous_rect_table_field = true,
+            align_array_table = true,
+            never_indent_comment_on_if_branch = true,
           },
         },
         telemetry = { enable = false },
