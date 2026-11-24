@@ -7,7 +7,7 @@ end
 local lspconfig = require("lspconfig")
 
 -- just in case
-local function global_on_attach(client, bufnr)
+function LSP_global_on_attach(client, bufnr)
   local bufname = vim.api.nvim_buf_get_name(bufnr)
   if bufname:match("^[a-zA-Z0-9]*://") then
     -- because why have sane way of silencing stuff
@@ -19,7 +19,7 @@ local default_server_setup = {
   preselectSupport = false,
   preselect = false,
   single_file_support = true,
-  on_attach = global_on_attach,
+  on_attach = LSP_global_on_attach,
   capabilities = Capabilities,
   settings = { telemetry = { enable = false } },
 }
@@ -319,7 +319,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
@@ -401,7 +401,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
@@ -443,7 +443,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
@@ -467,7 +467,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
@@ -525,7 +525,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
@@ -545,7 +545,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
@@ -563,7 +563,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
@@ -596,7 +596,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
@@ -617,7 +617,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
@@ -638,7 +638,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     offset_encoding = "utf-8",
     -- }}}
@@ -657,7 +657,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     offset_encoding = "utf-8",
     -- }}}
@@ -692,7 +692,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     offset_encoding = "utf-8",
     -- }}}
@@ -713,7 +713,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
@@ -737,7 +737,7 @@ lsp_setup(
       preselectSupport = false,
       preselect = false,
       single_file_support = true,
-      on_attach = global_on_attach,
+      on_attach = LSP_global_on_attach,
       capabilities = Capabilities,
       settings = { telemetry = { enable = false } },
       -- }}}
@@ -756,7 +756,7 @@ lsp_setup(
 lsp_setup(
   { "rust" }, "rust_analyzer", {
     -- boilerplate {{{
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
@@ -790,7 +790,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
@@ -895,7 +895,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
@@ -919,7 +919,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
@@ -936,7 +936,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     -- }}}
 
@@ -972,7 +972,7 @@ lsp_setup(
     preselectSupport = false,
     preselect = false,
     single_file_support = true,
-    on_attach = global_on_attach,
+    on_attach = LSP_global_on_attach,
     capabilities = Capabilities,
     root_dir = function(bufnr, on_dir)
       local result = lspconfig.util.root_pattern("deno.json", "deno.jsonc")(

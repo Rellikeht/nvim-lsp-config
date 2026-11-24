@@ -27,6 +27,7 @@ local config = {
   settings = {
     java = {
       signatureHelp = { enabled = true },
+      symbols = { includeGeneratedCode = true },
       completion = {
         favoriteStaticMembers = {},
         importOrder = { "java", "javax", "com", "org" },
@@ -50,15 +51,6 @@ local config = {
       },
 
       format = { enable = true },
-
-      -- configuration = {
-      --  runtimes = {
-      --    {
-      --      name = os.getenv("JAVA_NAME"),
-      --      path = os.getenv("JAVA_HOME"),
-      --      --
-      --    },
-
     },
   },
   sources = {
@@ -67,7 +59,7 @@ local config = {
       staticStarThreshold = 9999,
     },
   },
-  on_attach = lsp_attach,
+  on_attach = LSP_global_on_attach,
 
   handlers = { ["language/status"] = function() end },
 
