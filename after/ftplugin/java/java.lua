@@ -3,7 +3,9 @@ local project_name = vim.fn.fnamemodify(
   vim.fn.getcwd(), ":p:h:t"
 )
 
-local workspace_dir = nvim_local_dir .. "/jdtls-workspaces/" ..
+local workspace_dir =
+    nvim_local_dir ..
+    "/jdtls-workspaces/" ..
     project_name
 
 -- local classpath
@@ -12,8 +14,12 @@ local cmd = {
   "jdtls",
   "-data",
   workspace_dir,
-  --
 }
+-- just copied from nvim-lspconfig
+local jvm_args = vim.env["JDTLS_JVM_ARGS"] or ""
+for a in string.gmatch(jvm_args, "%S+") do
+  table.insert(cmd, "--jvm-arg=" .. a)
+end
 
 local config = {
   cmd = cmd,
@@ -67,7 +73,13 @@ local config = {
 
   root_dir = vim.fs.dirname(
     vim.fs.find(
-      { "gradlew", ".git", "mvnw", ".hg" }, { upward = true }
+      {
+        "gradlew",
+        ".git",
+        "mvnw",
+        ".hg",
+        "pom.xml",
+      }, { upward = true }
     )[1]
   ),
 }
